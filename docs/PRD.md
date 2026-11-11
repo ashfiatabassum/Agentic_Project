@@ -1,6 +1,6 @@
 # Product Requirements Document — Testimonial MVP
 
-**Status:** Baseline, being finalised feature by feature in a `grill-me` session (started 11 November 2026). Decided so far: **FR-01 Login** (see §10). Remaining features are still draft.  
+**Status:** Feature scope **final** (§11, 11 November 2026). FR-01 Login is fully decided (§10); behaviour details of the other features are settled as each is planned, then the data model is designed from §11.  
 **Date:** 11 November 2026.  
 **Owner:** Ashfia.  
 **Source:** User brief and discussion. The LMS assignment brief has been received ([assignment-brief.md](assignment-brief.md)); it sets the workflow and submission rules but not app features. The instructor's Project Requirements lesson (the feature list) has not yet been compared with this draft.
@@ -30,23 +30,26 @@ There is no separate platform administrator in this scope. “Admin” in the br
 | ID | Requirement | Acceptance criterion |
 | --- | --- | --- |
 | FR-01 | Owner registration, login, logout | A new owner can register and sign in; a signed-out user cannot access private pages or APIs. |
-| FR-02 | Create/list/edit spaces | Owner can create and later edit title, subtitle, collection prompt, unique public slug, theme, and questions; a success screen shows the public URL. Other owners cannot read/edit it. |
-| FR-03 | Configurable fields | Name and email are always enabled and required. Owner can enable company name, social link, and profile photo, and mark each enabled optional field required or optional. |
-| FR-04 | Predefined themes | Owner can pick at least two predefined collection-page themes; the public page reflects the saved choice. |
+| FR-02 | Create/list/edit/delete spaces | Owner can create and later edit title, subtitle, collection prompt, custom thank-you message, unique public slug, theme, brand colour, and questions; a success screen shows the public URL. Owner can delete a space after confirmation, which deletes its testimonials. Other owners cannot read/edit/delete it. |
+| FR-03 | Configurable fields | Name and email are always enabled and required. Owner can set job title, company name, social link, profile photo, and star rating (1–5) each to off, optional, or required. |
+| FR-04 | Predefined themes and brand colour | Owner can pick at least two predefined collection-page themes and an accent (brand) colour; the public page reflects the saved choices. No logo upload. |
 | FR-05 | Public text collection | Anyone with the link can view the configured questions and submit text, enabled fields, answers, and consent without registering. Server validates required fields and shows useful errors. |
-| FR-06 | Consent and confirmation | Public-display and social-sharing choices start unchecked and are stored separately; successful submission displays a thank-you page. No public display without public-display consent. |
-| FR-07 | Owner inbox | Owner sees their space's submissions, can filter by state, and view full details and consent. Other owners cannot access them. |
-| FR-08 | Moderation | Owner can edit text/details, hide/unhide, favourite/unfavourite, and add/remove an eligible item from Wall of Love. Favourites sort first. Hidden or non-consenting items are not public. |
+| FR-06 | Consent and confirmation | Public-display and social-sharing choices start unchecked and are stored separately; successful submission displays the space's thank-you message (or a default). No public display without public-display consent. |
+| FR-07 | Owner inbox | Owner sees their space's visible (unlocked) submissions, can filter by state, search by text (name, company, testimonial text), and view full details and consent. Locked submissions appear only as a count with an upgrade prompt. Other owners cannot access them. |
+| FR-08 | Moderation | Owner can edit text/details, hide/unhide, favourite/unfavourite, add/remove an eligible item from Wall of Love, and delete a submission (for example spam) after confirmation. Favourites sort first. Hidden, locked, or non-consenting items are not public. |
 | FR-09 | Wall of Love | A public wall shows only testimonials selected for the wall, visible, and consented to public display. |
 | FR-10 | Embed builder | Owner selects at least grid and carousel/list layouts, light/dark mode, background colour, and animation on/off; preview and generated responsive iframe snippet reflect those settings. |
 | FR-11 | Dashboard | Owner sees total spaces, total submissions, current plan, recent activity, daily submission graph, and 7/30-day selector. Free plan shows upgrade prompt. |
-| FR-12 | Limits | Free: max 3 spaces and 100 saved submissions per space. Paid: max 25 spaces and 1,000 saved submissions per space. Server rejects creation/submission past limits, including concurrent requests. |
+| FR-12 | Limits | Free: max 3 spaces and 100 visible submissions per space. Paid: max 25 spaces and 1,000 visible submissions per space. Space creation past the limit is rejected by the server, including concurrent requests. Submissions past the per-space limit are **accepted but locked** (see §5); a hard cap of 1,000 saved submissions per space rejects anything beyond it. |
 | FR-13 | Billing demo | Billing shows both plans and an upgrade action explicitly labelled as a simulation. Authenticated owner can simulate upgrade, see success, and later see Paid on billing/dashboard; an event is recorded. No card data is requested. |
 
 ## 5. Business and data rules
 
-- The plan belongs to the owner and applies to every owned space. Count all saved testimonials, including hidden ones, toward the per-space quota; changing display status does not free capacity.
-- The quota check and insert must be atomic or otherwise concurrency-safe on the server. A client-side disabled button is only UI feedback.
+- The plan belongs to the owner and applies to every owned space.
+- **Accept but lock (decided 11 Nov 2026):** in each space, the oldest *N* saved testimonials are visible, where *N* is the owner's plan limit per space (Free 100, Paid 1,000); newer ones are **locked**. Locked status is calculated from submission order, not stored, so concurrent submissions cannot exceed it. Hidden testimonials count toward *N*; hiding does not free capacity. Deleting a testimonial frees capacity and the oldest locked one becomes visible. Upgrading raises *N* and unlocks automatically.
+- Locked testimonials cannot be opened, edited, added to the wall, or shown publicly or in embeds; the owner sees only how many are locked, with an upgrade prompt. Customers always see the normal thank-you page.
+- Hard cap: at most 1,000 saved testimonials per space (the Paid limit), to bound storage and abuse. Beyond it, submission is rejected with "This page isn't accepting testimonials right now."
+- The space-count limit is enforced at creation and must be concurrency-safe on the server (create is rejected past the limit). A client-side disabled button is only UI feedback.
 - A favourite affects inbox ordering, not public visibility. `on_wall` affects public display only when `consent_public = true` and `hidden = false`.
 - Social-sharing consent does not by itself publish to the wall; it is a distinct permission.
 - Store question text with its answer or retain question versions so editing a space's questions does not make old answers unintelligible.
@@ -79,6 +82,7 @@ There is no separate platform administrator in this scope. “Admin” in the br
 ## 8. Exclusions and unresolved decisions
 
 - **Excluded from initial implementation:** video capture, NPS, brand monitoring, rewards, portfolio pages, imports, real Stripe checkout/webhooks, email notifications, and multi-owner teams.
+- **Also excluded after comparing with Testimonial.to (11 Nov 2026):** AI features (writing help, sentiment, summaries, style generator), social/review imports, case studies, automated invitations and email assistant, custom domains, REST API/webhooks/Zapier/MCP, replying to testimonials, tags, logo upload, and extra widget types (single-testimonial embed, badges, globe map, collect buttons). **Video** is Testimonial.to's headline feature; it is excluded here because recording, upload, storage, and playback would dominate the project. If the course's Project Requirements lesson requires video, it is listed as missing rather than relabelled.
 - **Unresolved:** The instructor's actual Project Requirements lesson must be compared with this draft. If it explicitly requires real Stripe, list it as incomplete rather than relabel the simulation.
 - **Resolved (grill-me, 11 Nov 2026):** the Paid plan price is **৳999 per month (BDT)**. It is displayed as a demo price; no money is charged.
 - **Unresolved:** Number/length of custom questions and profile-photo storage provider. Choose small defaults during OpenSpec planning and record them here.
@@ -140,3 +144,94 @@ The PRD above is the baseline (Q1). Decisions below refine it and take precedenc
 **Out of scope (Q10)** — listed as not done in the README: email verification, password reset, change password/email, delete account, "remember me", social login, multi-owner teams, admin role.
 
 **Verification (Q14)** — automated `node:test` tests against a separate `testimonial_mvp_test` database (register; case-insensitive duplicate email; field validation; login success and identical failure messages; `/me` with and without cookie; old cookie rejected after logout; expired session rejected; 415 for non-JSON writes; 429 on the 11th failed login), plus a Playwright MCP journey (sign up → dashboard → refresh stays signed in → log out; `/dashboard` while signed out → login → returns). Results in `verification.md` (FR-01).
+
+## 11. Final feature scope (11 November 2026)
+
+Agreed after listing all functions and comparing with Testimonial.to (home, pricing, widgets, and features pages). Additions from that comparison are marked **(new)**. Behaviour details not yet decided are settled when each feature is planned; tables are designed from this list afterwards.
+
+### 1. Authentication (FR-01) — fully decided in §10
+
+1. Sign up with name, email, and password; signed in automatically
+2. Log in with email and password
+3. Log out (ends this device's session)
+4. Stay signed in for 7 days
+5. Get the current user on page load
+6. Protect private pages and APIs (redirect to login, then back)
+7. Rate-limit login and sign-up attempts
+
+### 2. Spaces (FR-02 – FR-04)
+
+1. Create a space: name, subtitle, collection prompt, public link (slug)
+2. **(new)** Custom thank-you message per space (default text if empty)
+3. List my spaces on the dashboard
+4. Edit a space later
+5. **(new)** Delete a space after confirmation (also deletes its testimonials)
+6. Add, edit, reorder, and remove custom questions
+7. Configure customer fields: name and email always required; **(new)** job title, company, social link, profile photo, and **(new)** star rating 1–5 — each off, optional, or required
+8. Pick a predefined theme (at least two) and **(new)** a brand (accent) colour
+9. "Space created" screen with a copyable public link
+10. Other owners cannot view, edit, or delete my space
+
+### 3. Public collection — customers (FR-05, FR-06)
+
+1. Open `/s/:slug` without an account
+2. See the space's name, prompt, questions, theme, and brand colour
+3. Fill in the configured fields, star rating (if enabled), testimonial text, and answers
+4. Upload a profile photo (if enabled)
+5. Two separate consent boxes (public display, social sharing), both unchecked
+6. Submit with server validation and clear errors
+7. Thank-you page with the space's message
+8. Rate and length limits on submissions
+9. Submissions past the plan limit are accepted but locked; past the hard cap, rejected politely
+
+### 4. Inbox and moderation (FR-07, FR-08)
+
+1. View a space's visible submissions, favourites first
+2. Filter by state (all, on wall, hidden, favourites)
+3. **(new)** Search by name, company, or testimonial text
+4. Open full details, including consent, rating, and answers
+5. Edit text and details (marked as edited)
+6. Hide / unhide
+7. Favourite / unfavourite
+8. Add to / remove from the Wall of Love (only with public consent, not hidden, not locked)
+9. **(new)** Delete a submission (for example spam) after confirmation
+10. See how many submissions are locked, with an upgrade prompt
+11. Other owners cannot access my inbox
+
+### 5. Wall of Love (FR-09)
+
+1. Public wall `/s/:slug/wall`
+2. Shows only testimonials on the wall, not hidden, not locked, and with public consent
+3. Shows name, job title/company, photo, rating, and text; never email, consent flags, or private data
+
+### 6. Embed (FR-10)
+
+1. Embed builder page per space
+2. Layout (grid, carousel/list), light/dark mode, background colour, animation on/off
+3. Live preview
+4. Generate and copy a responsive iframe snippet
+5. Public embed route rendering the wall with those settings
+
+### 7. Dashboard (FR-11)
+
+1. Totals: spaces and submissions
+2. Current plan and usage against limits (including locked count)
+3. Recent activity
+4. Daily submissions graph with a 7/30-day selector
+5. Upgrade prompt on the Free plan
+
+### 8. Plan limits (FR-12)
+
+1. Free: 3 spaces, 100 visible testimonials per space
+2. Paid: 25 spaces, 1,000 visible testimonials per space
+3. Space creation past the limit is rejected, even under concurrent requests
+4. Testimonials past the limit are accepted but locked (oldest *N* visible); hard cap 1,000 saved per space
+5. Hidden testimonials count; deleting frees capacity; upgrading unlocks
+
+### 9. Billing demo (FR-13)
+
+1. Billing page comparing Free (৳0) and Paid (৳999/month)
+2. Upgrade button clearly labelled as a simulation; no card fields
+3. Simulated upgrade → success page → Paid shown on billing and dashboard, locked testimonials unlocked
+4. Plan persists after logging out and back in
+5. Each upgrade is recorded as an event

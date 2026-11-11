@@ -102,7 +102,7 @@ Also pending: embed settings storage (FR-10), recent-activity source (FR-11), qu
 
 - Every private space/testimonial query must scope through `spaces.owner_id = authenticated_user_id` on the server, including update actions and statistics. Do not accept owner IDs from request bodies as authority.
 - Public collection reads only published space configuration; public wall reads only `on_wall = true AND hidden = false AND consent_public = true`. Never return email, consent flags, or private answer fields from public wall queries.
-- Create space inside an owner-scoped, concurrency-safe quota operation. Create testimonial inside a space-scoped, concurrency-safe quota operation. Use a transaction and row lock or equivalent; verify the chosen MySQL isolation/locking approach under concurrent requests.
+- Create space inside an owner-scoped, concurrency-safe quota operation (rejected past the limit). Testimonials use accept-but-lock (visibility calculated from submission order), so only the 1,000-per-space hard cap needs a concurrency-safe check. Verify the chosen MySQL locking approach under concurrent requests.
 - Keep server-side validation as the source of truth. Photo upload should restrict MIME type, size, and storage path; do not store binary photos in this table.
 - Apply migrations to a disposable local database first, then document the exact commands in README. Automated tests use a separate `testimonial_mvp_test` database (Q14).
 
@@ -115,4 +115,4 @@ Stored in the `plans` table (decided above):
 | Free | ৳0 | 3 | 100 |
 | Paid (demo) | ৳999 / month | 25 | 1,000 |
 
-These limits count saved rows even when hidden. Upgrading changes future limits; no existing data is deleted.
+Spaces past the limit are rejected at creation. Testimonials past the limit are **accepted but locked**: in each space the oldest *N* saved rows are visible (*N* = plan limit), newer ones are locked; locked status is calculated from submission order, not stored. Hidden rows count toward *N*; deleting a row frees capacity; upgrading raises *N* and unlocks. Hard cap: 1,000 saved testimonials per space (see PRD §5).
