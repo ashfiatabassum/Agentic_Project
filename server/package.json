@@ -1,0 +1,20 @@
+{
+  "name": "testimonial-mvp-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Express + MySQL API for the Testimonial MVP",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=.env src/index.js",
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "5.3.0",
+    "mysql2": "3.24.6"
+  }
+}
