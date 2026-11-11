@@ -63,6 +63,8 @@ The Paid upgrade is a **simulation**. It must never collect card information or 
 | --- | --- | --- | --- |
 | Claude Code hook | Core | Normalize whitespace after code edits | `.claude/settings.json`, `.claude/hooks/format-changed.cjs`, and observed run |
 | React skill | Core | Review UI structure, forms, state, accessibility | `.claude/skills/review-react-ui/`; findings in `docs/verification.md` |
+| MySQL skill (external) | Core | General MySQL/InnoDB guidance: keys, data types, indexes, EXPLAIN, locking, deadlocks | `.claude/skills/mysql/` from `planetscale/database-skills`, pinned in `skills-lock.json`; runs in the Skill usage log |
+| React best practices skill (external) | Core | React performance rules: re-renders, data fetching, bundle size (Next.js-only rules skipped) | `.claude/skills/vercel-react-best-practices/` from `vercel-labs/agent-skills`, pinned in `skills-lock.json`; runs in the Skill usage log |
 | Grill-me skill | Core | Stress-test each milestone plan through a question-by-question interview before coding | `.claude/skills/grill-me/` and `.claude/skills/grilling/` (from `mattpocock/skills`, pinned in `skills-lock.json`); each run in the Skill usage log in `docs/verification.md` |
 | MySQL skill | Core | Review schema, constraints, query boundaries | `.claude/skills/review-mysql-model/`; findings in `docs/verification.md` |
 | Playwright MCP | Core | Browser journey checks | `.mcp.json`; observed results in `docs/verification.md` |

@@ -39,7 +39,7 @@ Record **observed** results only. A planned test is not a pass. Use test account
 
 ## Skill usage log
 
-One row **per skill run**, added in the same session the skill ran. Covers project skills (`grill-me`/`grilling`, `review-mysql-model`, `review-react-ui`) and built-in skills used on project work (for example `security-review`, `code-review`). Record only runs that actually happened.
+One row **per skill run**, added in the same session the skill ran. Covers project skills (`grill-me`/`grilling`, `mysql`, `review-mysql-model`, `vercel-react-best-practices`, `review-react-ui`) and built-in skills used on project work (for example `security-review`, `code-review`). Record only runs that actually happened.
 
 **How invoked** values: `typed` (user typed `/skill-name`), `requested` (user asked Claude in a prompt to use the skill), `auto` (Claude started it on its own because the task matched).
 
@@ -47,7 +47,17 @@ One row **per skill run**, added in the same session the skill ran. Covers proje
 | ---: | --- | --- | --- | --- | --- | --- | --- |
 | | | | | | | | |
 
-Installed project skills (not uses): `review-mysql-model`, `review-react-ui` (starter, `6a07d99`); `grill-me` and `grilling` from `mattpocock/skills`, pinned in `skills-lock.json` (`16e4d5f`).
+Installed project skills (not uses):
+
+| Skill | Source | Role | Commit |
+| --- | --- | --- | --- |
+| `review-mysql-model` | Written for this project (starter) | Project rules: schema/queries | `6a07d99` |
+| `review-react-ui` | Written for this project (starter) | Project rules: UI | `6a07d99` |
+| `grill-me`, `grilling` | `mattpocock/skills`, pinned in `skills-lock.json` | Planning interview | `16e4d5f` |
+| `vercel-react-best-practices` | `vercel-labs/agent-skills`, pinned in `skills-lock.json` | General React performance | `51d8465` |
+| `mysql` | `planetscale/database-skills`, pinned in `skills-lock.json` (postgres, vitess, neki from the same pack removed) | General MySQL/InnoDB | `e81599e` |
+
+Both external skills were read and scanned before use: guidance text only, no scripts. Known caveats are recorded in `CLAUDE.md` → "Skills: which to use".
 
 ## Parallel work and integration
 
