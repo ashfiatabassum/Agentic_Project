@@ -61,6 +61,51 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 
 ---
 
+## M1 — Data model and migrations
+
+**Goal:** the final schema exists in MySQL, created by repeatable migrations, with seed data and automated tests proving the constraints, accept-but-lock ranking, and concurrency rules. No feature endpoints yet.
+**Requirements covered:** assignment step 3 (data model in the repo); data foundations for FR-01 – FR-13 ([data-model.md](docs/data-model.md), Final).
+**Branch:** `main`. **Status:** planning done; implementation next (in a fresh Claude Code session so the hook runs).
+
+### Planning (done)
+
+- [x] Feature scope finalised after comparing with Testimonial.to — PRD §11 (`9fd78b0`, `828449a`)
+- [x] Login decided in a `grill-me` session — PRD §10 (`3c7674e`)
+- [x] Table design proposed, reviewed with `mysql` and `review-mysql-model`, checked on a disposable copy (22/22) — Skill usage log #2–#3
+- [x] Data model marked **Final** with review changes R1–R7 and defaults D1–D12
+
+### Tasks
+
+- [ ] **Migration runner** `server/db/migrate.js`: creates `schema_migrations`; applies `server/db/migrations/NNN_*.sql` in order, one file per table; records filename + SHA-256 checksum; fails loudly if an applied file was edited; forward-only
+- [ ] **Migrations** `001`–`009` in the dependency order of data-model.md (`plans` → `themes` → `users` → `sessions` → `spaces` → `space_questions` → `testimonials` → `testimonial_answers` → `billing_events`), with the seed rows for `plans` and `themes` in their migrations
+- [ ] **Scripts** (server and root): `npm run migrate`; `npm run db:reset` (drops and re-migrates; refuses unless `NODE_ENV` is not `production` **and** the database name is `testimonial_mvp` or `testimonial_mvp_test`); `npm run seed` (one demo owner, two spaces, synthetic testimonials — no real personal data)
+- [ ] **Test database** `testimonial_mvp_test`: developer creates it and grants `testimonial_app` rights (root SQL in README); `server/.env.test` (gitignored) and `server/.env.test.example`; `npm test` migrates the test DB before running
+- [ ] **Schema tests** (`server/test/schema.test.js`), turned from the review script: FKs, unique email/slug, every `CHECK`, flag defaults, question delete keeps snapshot, space delete cascades, accept-but-lock 105 → 100/5 and after upgrade, `EXPLAIN` uses the `(space_id, created_at)` index
+- [ ] **Concurrency tests:** 4 parallel space creations at the Free limit → exactly 3; parallel submissions at the 1,000 hard cap → never more than 1,000 (not yet tested in the review)
+- [ ] **Docs:** migrate/reset/seed/test commands in `CLAUDE.md` and README (replace "TBD"); STATUS updated
+
+### Done when
+
+- [ ] `npm run migrate` on an empty database creates all 10 tables; running it again changes nothing
+- [ ] Editing an applied migration makes `npm run migrate` fail with a clear message
+- [ ] `npm run db:reset` + `npm run seed` gives a working demo dataset; reset refuses on any other database name
+- [ ] `npm test` passes, including schema and both concurrency tests, against `testimonial_mvp_test`
+- [ ] Dev database `testimonial_mvp` untouched by tests
+- [ ] No secrets or generated data committed
+
+### Agentic tools
+
+- **Skills:** `mysql` + `review-mysql-model` review the actual migration SQL and runner (log rows in the Skill usage log).
+- **Hook:** expected to fire on `server/**/*.js` edits in the fresh session — record the first observed `Normalized whitespace` message.
+- **Playwright MCP:** not applicable (no UI in M1).
+
+### Risks
+
+- MySQL DDL commits implicitly, so a failed migration can leave a partial schema: one table per file, and `db:reset` for development recovery.
+- Creating the test database needs MySQL root once (developer action).
+
+---
+
 ## Next milestones
 
-To be planned one at a time, starting with **M1 — Data model and migrations**.
+To be planned one at a time after M1: **M2 — Auth + spaces + public form + inbox** (first vertical slice).

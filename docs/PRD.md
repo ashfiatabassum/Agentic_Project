@@ -1,6 +1,6 @@
 # Product Requirements Document — Testimonial MVP
 
-**Status:** Feature scope **final** (§11, 11 November 2026). FR-01 Login is fully decided (§10); behaviour details of the other features are settled as each is planned, then the data model is designed from §11.  
+**Status:** Feature scope **final** (§11) and data model **final** ([data-model.md](data-model.md)), 11 November 2026. FR-01 Login is fully decided (§10); data-level rules for all features are in the data model; remaining UI behaviour details are settled as each milestone is planned.  
 **Date:** 11 November 2026.  
 **Owner:** Ashfia.  
 **Source:** User brief and discussion. The LMS assignment brief has been received ([assignment-brief.md](assignment-brief.md)); it sets the workflow and submission rules but not app features. The instructor's Project Requirements lesson (the feature list) has not yet been compared with this draft.
