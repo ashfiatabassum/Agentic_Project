@@ -37,6 +37,18 @@ Record **observed** results only. A planned test is not a pass. Use test account
 | Claude Code hook | | | | |
 | Playwright MCP | | | | |
 
+## Skill usage log
+
+One row **per skill run**, added in the same session the skill ran. Covers project skills (`grill-me`/`grilling`, `review-mysql-model`, `review-react-ui`) and built-in skills used on project work (for example `security-review`, `code-review`). Record only runs that actually happened.
+
+**How invoked** values: `typed` (user typed `/skill-name`), `requested` (user asked Claude in a prompt to use the skill), `auto` (Claude started it on its own because the task matched).
+
+| # | Date | Skill | Milestone / feature | How invoked | What it did | Outcome / decisions / fixes | Commit |
+| ---: | --- | --- | --- | --- | --- | --- | --- |
+| | | | | | | | |
+
+Installed project skills (not uses): `review-mysql-model`, `review-react-ui` (starter, `6a07d99`); `grill-me` and `grilling` from `mattpocock/skills`, pinned in `skills-lock.json` (`16e4d5f`).
+
 ## Parallel work and integration
 
 - Independent task:

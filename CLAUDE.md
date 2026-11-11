@@ -58,6 +58,10 @@ Run at least one independent task in a **separate session and branch/worktree**,
 
 Whenever something goes wrong — a bug Claude introduced, incomplete or incorrect AI output, a wrong assumption, a failed command, a merge conflict, or a misleading instruction — add a row to **Issues and corrections log** in `docs/verification.md` in the same session: what went wrong, who/what caused it, how it was detected, and the fix and how it was verified. Be honest about whether Claude, the developer, or the environment caused it. Do not wait until the end of the project.
 
+## Record every skill run
+
+Every time a skill runs on project work — a project skill (`grill-me`/`grilling`, `review-mysql-model`, `review-react-ui`) or a built-in one such as `security-review` — add a row to **Skill usage log** in `docs/verification.md` in the same session: date, skill, milestone, how it was invoked (`typed`, `requested`, or `auto`), what it did, and the outcome (decisions made, findings, fixes) with the commit. After a `grill-me`/`grilling` session, write the confirmed decisions into `plan.md`, `docs/PRD.md`, or `docs/data-model.md` before implementing.
+
 ## Definition of done
 
 An item is done only when its acceptance criteria are checked in the running app, relevant automated checks pass, and the documentation states what was observed. Record failures and unfinished work truthfully. Never fabricate a tool invocation, test result, payment, or reflection experience.

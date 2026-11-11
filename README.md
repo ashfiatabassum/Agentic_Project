@@ -63,13 +63,14 @@ The Paid upgrade is a **simulation**. It must never collect card information or 
 | --- | --- | --- | --- |
 | Claude Code hook | Core | Normalize whitespace after code edits | `.claude/settings.json`, `.claude/hooks/format-changed.cjs`, and observed run |
 | React skill | Core | Review UI structure, forms, state, accessibility | `.claude/skills/review-react-ui/`; findings in `docs/verification.md` |
+| Grill-me skill | Core | Stress-test each milestone plan through a question-by-question interview before coding | `.claude/skills/grill-me/` and `.claude/skills/grilling/` (from `mattpocock/skills`, pinned in `skills-lock.json`); each run in the Skill usage log in `docs/verification.md` |
 | MySQL skill | Core | Review schema, constraints, query boundaries | `.claude/skills/review-mysql-model/`; findings in `docs/verification.md` |
 | Playwright MCP | Core | Browser journey checks | `.mcp.json`; observed results in `docs/verification.md` |
 | Reviewer subagent | Optional | Independent requirement/security review | `.claude/agents/requirements-reviewer.md`; findings in `docs/verification.md` |
 | OpenSpec | Optional | Proposal, requirements, tasks for a feature | Link to committed `openspec/changes/...` |
 | Parallel session/branch | Required | Independent feature implementation and merge | Branch/merge commit and integration check |
 
-Configuration alone is not evidence of use. Update this table only after performing each action, and remove optional tools that were not used.
+Configuration alone is not evidence of use. Update this table only after performing each action, and remove optional tools that were not used. Every individual skill run (when, which milestone, how it was invoked, and what changed) is listed in the **Skill usage log** in [docs/verification.md](docs/verification.md#skill-usage-log).
 
 ## Submission checklist
 
