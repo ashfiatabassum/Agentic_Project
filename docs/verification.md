@@ -9,7 +9,7 @@ Record **observed** results only. A planned test is not a pass. Use test account
 - Frontend/backend/database versions and run commands: React 19.1.10, Vite 8.3.5, Tailwind 4.3.3, Express 5.3.0, mysql2 3.24.6, MySQL 8.0.46, Node 24.18.0; `npm run setup`, `npm run dev` (see README)
 - Browser: Chrome (user confirmed the scaffold status page shows client/API/database ok)
 - Playwright MCP connection status (`/mcp`): configuration checked outside a session — `@playwright/mcp@0.0.84` started, completed the MCP handshake, and listed 25 tools. `/mcp` inside a fresh Claude Code session (11 November 2026): `playwright` ✔ connected, 25 tools, loaded from `C:\Agentic_Project\.mcp.json`. Not yet used on app pages.
-- Hook status (`/hooks`): hook command run manually as Claude Code would run it — normalized a `server/` JS file, ignored a file outside `client/`/`server/`. Firing during a real session edit: not yet observed.
+- Hook status (`/hooks`): hook command run manually as Claude Code would run it — normalized a `server/` JS file, ignored a file outside `client/`/`server/`. `/hooks` in a fresh Claude Code session (11 November 2026): 1 hook on PostToolUse, `[Project]`, matcher `Edit|Write`, command `node "$CLAUDE_PROJECT_DIR/.claude/hooks/format-changed.cjs"`. Firing during a real session edit: not yet observed.
 
 ## Feature checks
 
