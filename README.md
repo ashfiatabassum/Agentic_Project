@@ -12,12 +12,34 @@ This repository currently contains the **requirements and agentic workflow start
 4. Optional: initialize OpenSpec for Claude Code (`openspec init --tools claude`). Do not claim that OpenSpec is initialized until this command succeeds.
 5. Run `/mcp` in Claude Code to confirm the Playwright server; run `/hooks` to confirm the project hook. Project MCP configuration may require approval the first time.
 
-## Planned local setup (update after implementation)
+## How to run locally
 
-- Node.js and npm, MySQL, and Claude Code are required.
-- `client/` and `server/` will each have an `.env.example`; copy to `.env` and supply local values. Never commit real secrets.
-- Exact `npm install`, migration, seed, and `npm run dev` commands: **TBD after scaffold and successful execution**.
-- The public link must point to a reachable host when demonstrating from another device. A localhost link works only on the same computer.
+**Requirements:** Node.js 22.12+ (developed on 24.18), npm, MySQL 8.0.
+
+1. **Install dependencies** (root, `server/`, and `client/`):
+   ```bash
+   npm run setup
+   ```
+2. **Create the database and app user** as the MySQL root user (choose your own password):
+   ```sql
+   CREATE DATABASE testimonial_mvp CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+   CREATE USER 'testimonial_app'@'localhost' IDENTIFIED BY 'your-password';
+   CREATE USER 'testimonial_app'@'127.0.0.1' IDENTIFIED BY 'your-password';
+   GRANT ALL PRIVILEGES ON testimonial_mvp.* TO 'testimonial_app'@'localhost';
+   GRANT ALL PRIVILEGES ON testimonial_mvp.* TO 'testimonial_app'@'127.0.0.1';
+   ```
+3. **Configure the server:** copy `server/.env.example` to `server/.env` and set `DB_PASSWORD` to the same password. `server/.env` is gitignored; never commit it.
+4. **Create tables:** migration command **TBD** (not built yet).
+5. **Start the app:**
+   ```bash
+   npm run dev
+   ```
+   This starts the API on http://localhost:4000 and the client on http://localhost:5173. Open the client URL; `/api` requests are proxied to the API.
+6. **Check:** http://localhost:4000/api/health should return `{"status":"ok","api":"ok","database":"ok"}`.
+
+Other commands: `npm test` (server tests), `npm run build` (client production build), `npm run dev:server` / `npm run dev:client` (one side only).
+
+The public collection link must point to a reachable host when demonstrating from another device. A localhost link works only on the same computer.
 
 ## Scope status
 

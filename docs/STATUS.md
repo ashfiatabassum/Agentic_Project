@@ -12,12 +12,16 @@
 - Repository: the starter lives at the root of `ashfiatabassum/Agentic_Project` (moved from `testimonial-mvp-starter/` on 11 November 2026).
 - Config: hook command uses `$CLAUDE_PROJECT_DIR`; Playwright MCP pinned to `@playwright/mcp@0.0.84`; hook script tested manually on a throwaway `client/` file (normalized whitespace, exit 0).
 
+- Setup (11 November 2026): starter pushed (`6a07d99`); repo is public. Hook command and Playwright MCP 0.0.84 configuration checked outside a session (hook normalizes `client/`/`server/` JS; MCP starts and lists 25 tools). This is a configuration check, not use during feature work.
+- Server scaffold (`ead4f0a`): Express API with MySQL pool and `/api/health`; 3 node:test tests pass, including against the live database.
+- Client scaffold (`081f12f`): React + Vite + Tailwind with `/api` proxy; build succeeds; user confirmed `npm run dev` shows client, API, and database all ok in the browser.
+- Local MySQL: database `testimonial_mvp` and user `testimonial_app` (localhost and 127.0.0.1) recreated cleanly after an access-denied problem (placeholder password set by mistake, plus a likely extra `@127.0.0.1` account with a different password).
+
 ## Next actions
 
 1. Obtain the actual Module 13 **Project Requirements** lesson text and reconcile it with `docs/PRD.md` (especially billing and media requirements). The assignment brief is already in `docs/assignment-brief.md`.
-2. Commit and push this starter; confirm the repo is public or the reviewer has access; confirm `/hooks` and `/mcp` in Claude Code.
-3. Scaffold `client/` and `server/`, set up MySQL, and write/apply migrations after database-skill review.
-4. Complete the first vertical slice: owner sign up → create space → public anonymous submission → owner inbox.
+2. Build a migration runner (`server/db/migrations/`) and record its command; finalise the data model gaps first (embed settings, recent activity, question FK, lock strategy, missing columns, price).
+3. Complete the first vertical slice: owner sign up → create space → public anonymous submission → owner inbox.
 
 ## Progress table
 

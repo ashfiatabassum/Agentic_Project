@@ -21,13 +21,23 @@ Do not silently invent product behaviour or claim unverified work is done. Keep 
 
 ## Commands
 
-The application has not been scaffolded. Replace these placeholders with exact commands **after running them**:
+Run from the repository root unless noted. Only list commands that have actually been run successfully.
 
-- Install dependencies: TBD
-- Create/migrate MySQL database: TBD
-- Start backend: TBD
-- Start frontend: TBD
-- Run lint/test/build checks: TBD
+- Install all dependencies (root, `server/`, `client/`): `npm run setup`
+- Start API (port 4000) and client (port 5173) together: `npm run dev`
+- Start only the API: `npm run dev:server` (or `npm run dev` inside `server/`)
+- Start only the client: `npm run dev:client` (or `npm run dev` inside `client/`)
+- Server tests (Node test runner): `npm test` — to also exercise the live database: `cd server && node --env-file=.env --test`
+- Client production build: `npm run build`
+- Health check: `GET http://localhost:4000/api/health` or through the Vite proxy at `http://localhost:5173/api/health`; 200 with `"database":"ok"` when MySQL is reachable
+- Create/migrate MySQL tables: TBD (migration runner not built yet)
+
+Local environment notes:
+
+- MySQL 8.0 runs as the Windows service `MySQL80`; the CLI is `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"` (not on PATH).
+- Database `testimonial_mvp`, app user `testimonial_app` exists for both `localhost` and `127.0.0.1` with the same password. Credentials live only in `server/.env` (gitignored); copy from `server/.env.example`. Never print or commit the password.
+- In Git Bash, backslashes in command-line arguments to Windows programs get mangled; put test code with Windows paths or regexes in a script file instead of `node -e`.
+- Pinned versions: Express 5.3.0, mysql2 3.24.6, React 19.1.10, Vite 8.3.5, Tailwind 4.3.3, concurrently 10.0.6, Playwright MCP 0.0.84.
 
 ## Feature loop: plan → implement → verify
 
