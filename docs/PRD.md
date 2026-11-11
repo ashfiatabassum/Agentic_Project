@@ -32,7 +32,7 @@ There is no separate platform administrator in this scope. “Admin” in the br
 | FR-01 | Owner registration, login, logout | A new owner can register and sign in; a signed-out user cannot access private pages or APIs. |
 | FR-02 | Create/list/edit/delete spaces | Owner can create and later edit title, subtitle, collection prompt, custom thank-you message, unique public slug, theme, brand colour, and questions; a success screen shows the public URL. Owner can delete a space after confirmation, which deletes its testimonials. Other owners cannot read/edit/delete it. |
 | FR-03 | Configurable fields | Name and email are always enabled and required. Owner can set job title, company name, social link, profile photo, and star rating (1–5) each to off, optional, or required. |
-| FR-04 | Predefined themes and brand colour | Owner can pick at least two predefined collection-page themes and an accent (brand) colour; the public page reflects the saved choices. No logo upload. |
+| FR-04 | Predefined themes, brand colour, and logo | Owner can pick at least two predefined collection-page themes and an accent (brand) colour, and optionally upload a logo (replace or remove later); the public page, wall, and embed reflect the saved choices. Logo uploads use the same server-side image type and size checks as profile photos. |
 | FR-05 | Public text collection | Anyone with the link can view the configured questions and submit text, enabled fields, answers, and consent without registering. Server validates required fields and shows useful errors. |
 | FR-06 | Consent and confirmation | Public-display and social-sharing choices start unchecked and are stored separately; successful submission displays the space's thank-you message (or a default). No public display without public-display consent. |
 | FR-07 | Owner inbox | Owner sees their space's visible (unlocked) submissions, can filter by state, search by text (name, company, testimonial text), and view full details and consent. Locked submissions appear only as a count with an upgrade prompt. Other owners cannot access them. |
@@ -82,7 +82,7 @@ There is no separate platform administrator in this scope. “Admin” in the br
 ## 8. Exclusions and unresolved decisions
 
 - **Excluded from initial implementation:** video capture, NPS, brand monitoring, rewards, portfolio pages, imports, real Stripe checkout/webhooks, email notifications, and multi-owner teams.
-- **Also excluded after comparing with Testimonial.to (11 Nov 2026):** AI features (writing help, sentiment, summaries, style generator), social/review imports, case studies, automated invitations and email assistant, custom domains, REST API/webhooks/Zapier/MCP, replying to testimonials, tags, logo upload, and extra widget types (single-testimonial embed, badges, globe map, collect buttons). **Video** is Testimonial.to's headline feature; it is excluded here because recording, upload, storage, and playback would dominate the project. If the course's Project Requirements lesson requires video, it is listed as missing rather than relabelled.
+- **Also excluded after comparing with Testimonial.to (11 Nov 2026):** AI features (writing help, sentiment, summaries, style generator), social/review imports, case studies, automated invitations and email assistant, custom domains, REST API/webhooks/Zapier/MCP, replying to testimonials, tags, and extra widget types (single-testimonial embed, badges, globe map, collect buttons). **Video** is Testimonial.to's headline feature; it is excluded here because recording, upload, storage, and playback would dominate the project. If the course's Project Requirements lesson requires video, it is listed as missing rather than relabelled.
 - **Unresolved:** The instructor's actual Project Requirements lesson must be compared with this draft. If it explicitly requires real Stripe, list it as incomplete rather than relabel the simulation.
 - **Resolved (grill-me, 11 Nov 2026):** the Paid plan price is **৳999 per month (BDT)**. It is displayed as a demo price; no money is charged.
 - **Unresolved:** Number/length of custom questions and profile-photo storage provider. Choose small defaults during OpenSpec planning and record them here.
@@ -169,13 +169,14 @@ Agreed after listing all functions and comparing with Testimonial.to (home, pric
 6. Add, edit, reorder, and remove custom questions
 7. Configure customer fields: name and email always required; **(new)** job title, company, social link, profile photo, and **(new)** star rating 1–5 — each off, optional, or required
 8. Pick a predefined theme (at least two) and **(new)** a brand (accent) colour
-9. "Space created" screen with a copyable public link
-10. Other owners cannot view, edit, or delete my space
+9. **(new)** Upload an optional logo (replace or remove later); same image type and size checks as profile photos
+10. "Space created" screen with a copyable public link
+11. Other owners cannot view, edit, or delete my space
 
 ### 3. Public collection — customers (FR-05, FR-06)
 
 1. Open `/s/:slug` without an account
-2. See the space's name, prompt, questions, theme, and brand colour
+2. See the space's logo, name, prompt, questions, theme, and brand colour
 3. Fill in the configured fields, star rating (if enabled), testimonial text, and answers
 4. Upload a profile photo (if enabled)
 5. Two separate consent boxes (public display, social sharing), both unchecked
