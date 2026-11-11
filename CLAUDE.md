@@ -5,8 +5,9 @@
 1. Read `docs/assignment-brief.md` for what is graded and what must be submitted.
 2. Read `docs/PRD.md` for product behaviour and open decisions.
 3. Read `docs/data-model.md` for intended entities and database rules.
-4. Read `docs/STATUS.md` for current progress and the next task.
-5. Read the active plan (OpenSpec change, if used) before implementing it. If the Project Requirements lesson text has not been compared with the PRD, request that comparison and record any changes.
+4. Read `plan.md` for the milestone order, the active milestone's tasks, and its "done when" checks.
+5. Read `docs/STATUS.md` for current progress and the next task.
+6. Read the active plan (OpenSpec change, if used) before implementing it. If the Project Requirements lesson text has not been compared with the PRD, request that comparison and record any changes.
 
 Do not silently invent product behaviour or claim unverified work is done. Keep the PRD, plan/OpenSpec artifacts, schema, status, and implementation aligned. If they conflict, stop that feature, describe the conflict, and update the relevant plan before coding.
 

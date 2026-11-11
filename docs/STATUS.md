@@ -19,6 +19,8 @@
 
 ## Next actions
 
+Milestones and their tasks live in [`plan.md`](../plan.md). M0 (setup) is complete; M1 (data model and migrations) is next and must be planned in `plan.md` before implementation.
+
 1. Obtain the actual Module 13 **Project Requirements** lesson text and reconcile it with `docs/PRD.md` (especially billing and media requirements). The assignment brief is already in `docs/assignment-brief.md`.
 2. Build a migration runner (`server/db/migrations/`) and record its command; finalise the data model gaps first (embed settings, recent activity, question FK, lock strategy, missing columns, price).
 3. Complete the first vertical slice: owner sign up → create space → public anonymous submission → owner inbox.
