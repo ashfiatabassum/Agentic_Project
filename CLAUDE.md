@@ -53,6 +53,10 @@ The assignment requires at least two agentic tools. This project's **core tools*
 
 Run at least one independent task in a **separate session and branch/worktree**, then merge it and verify the integrated application. A subagent by itself does not prove this parallel-session requirement. Keep the branch name, merge commit, and integration result in the verification log.
 
+## Record mistakes as they happen
+
+Whenever something goes wrong — a bug Claude introduced, incomplete or incorrect AI output, a wrong assumption, a failed command, a merge conflict, or a misleading instruction — add a row to **Issues and corrections log** in `docs/verification.md` in the same session: what went wrong, who/what caused it, how it was detected, and the fix and how it was verified. Be honest about whether Claude, the developer, or the environment caused it. Do not wait until the end of the project.
+
 ## Definition of done
 
 An item is done only when its acceptance criteria are checked in the running app, relevant automated checks pass, and the documentation states what was observed. Record failures and unfinished work truthfully. Never fabricate a tool invocation, test result, payment, or reflection experience.
