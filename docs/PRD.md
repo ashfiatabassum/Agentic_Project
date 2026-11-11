@@ -1,6 +1,6 @@
 # Product Requirements Document — Testimonial MVP
 
-**Status:** Draft for comparison with the course's Project Requirements lesson.  
+**Status:** Baseline, being finalised feature by feature in a `grill-me` session (started 11 November 2026). Decided so far: **FR-01 Login** (see §10). Remaining features are still draft.  
 **Date:** 11 November 2026.  
 **Owner:** Ashfia.  
 **Source:** User brief and discussion. The LMS assignment brief has been received ([assignment-brief.md](assignment-brief.md)); it sets the workflow and submission rules but not app features. The instructor's Project Requirements lesson (the feature list) has not yet been compared with this draft.
@@ -80,9 +80,63 @@ There is no separate platform administrator in this scope. “Admin” in the br
 
 - **Excluded from initial implementation:** video capture, NPS, brand monitoring, rewards, portfolio pages, imports, real Stripe checkout/webhooks, email notifications, and multi-owner teams.
 - **Unresolved:** The instructor's actual Project Requirements lesson must be compared with this draft. If it explicitly requires real Stripe, list it as incomplete rather than relabel the simulation.
-- **Unresolved:** “999” has no confirmed currency or billing cadence. Display this carefully as a demo price until clarified; do not imply a monthly charge.
+- **Resolved (grill-me, 11 Nov 2026):** the Paid plan price is **৳999 per month (BDT)**. It is displayed as a demo price; no money is charged.
 - **Unresolved:** Number/length of custom questions and profile-photo storage provider. Choose small defaults during OpenSpec planning and record them here.
 
 ## 9. Verification target
 
 Run the entire owner/customer journey in separate browser contexts. Test another owner cannot access the first owner's space/inbox, required fields, no public wall without consent, hidden items, favourite ordering, limit boundaries and concurrent submissions, embed in a separate test HTML page, and persistence of the demo plan after sign-out/in. Record actual outcomes in `verification.md`.
+
+## 10. Decisions from the grill-me session
+
+The PRD above is the baseline (Q1). Decisions below refine it and take precedence where more specific. Question numbers refer to the grill-me session of 11 November 2026.
+
+### FR-01 Login — decided
+
+**Registration (Q5, Q8)**
+
+- Fields: **name** (trimmed, 1–100 characters, any script), **email** (trimmed, lowercased, valid format, unique, ≤254), **password**. No username.
+- New accounts start on the **Free** plan; the client can never set the plan.
+- Successful registration creates the account and a session in one request and opens the dashboard (empty state).
+
+**Passwords (Q6)**
+
+- 8–128 characters; no forced character-class rules. Form hint: "At least 8 characters".
+- Hashed with Node's built-in `crypto.scrypt` (random 16-byte salt per user, `timingSafeEqual`), stored as `scrypt$<params>$<salt>$<hash>`. Never logged, returned, or stored in plain text.
+
+**Sessions (Q7, Q7a)**
+
+- Server-side sessions: the cookie holds a random 32-byte token; the database stores only its SHA-256 hash.
+- Cookie: `HttpOnly`, `SameSite=Lax`, `Path=/`, `Secure` in production, `Max-Age` 7 days.
+- Fixed 7-day lifetime (no sliding renewal, no "remember me"). Expired sessions are rejected; expired rows are deleted whenever someone logs in.
+- Several devices may be logged in at once; logout ends only the current session.
+
+**Errors and abuse protection (Q9, Q11)**
+
+- Login failure always shows "Invalid email or password"; when the email is unknown, a dummy hash check still runs so timing does not reveal registered emails.
+- Registering an existing email returns 409 "An account with this email already exists."
+- In-memory rate limits: 10 failed logins per IP per 15 minutes; 5 registrations per IP per hour; over the limit returns 429.
+- CSRF: `SameSite=Lax` cookies plus JSON-only state-changing requests (other content types return 415). The public photo upload is handled separately with its feature.
+
+**Access control (Q12)**
+
+- One `requireAuth` middleware on every private API; missing or expired session returns 401 `{"error":"Not signed in"}`.
+- Private pages redirect signed-out users to `/login?next=<path>` (same-site paths only) and return there after login; an API 401 mid-session does the same. Signed-in users opening `/login` or `/signup` go to the dashboard.
+- The client learns the current user from `GET /api/auth/me` on load.
+
+**API (Q13)**
+
+| Method & path | Body | Success | Errors |
+| --- | --- | --- | --- |
+| `POST /api/auth/register` | `{ name, email, password }` | 201, sets cookie, `{ user }` | 400 validation, 409 email exists, 429 |
+| `POST /api/auth/login` | `{ email, password }` | 200, sets cookie, `{ user }` | 400 validation, 401 invalid credentials, 429 |
+| `POST /api/auth/logout` | — | 204, deletes session, clears cookie | always succeeds |
+| `GET /api/auth/me` | — | 200 `{ user }` | 401 |
+
+- `user` = `{ id, name, email, plan }`; never the password hash.
+- Validation errors across the whole API: `{ "error": "Validation failed", "fields": { "<field>": "<message>" } }`.
+- Pages: `/signup`, `/login`; a **Log out** button in the private header.
+
+**Out of scope (Q10)** — listed as not done in the README: email verification, password reset, change password/email, delete account, "remember me", social login, multi-owner teams, admin role.
+
+**Verification (Q14)** — automated `node:test` tests against a separate `testimonial_mvp_test` database (register; case-insensitive duplicate email; field validation; login success and identical failure messages; `/me` with and without cookie; old cookie rejected after logout; expired session rejected; 415 for non-JSON writes; 429 on the 11th failed login), plus a Playwright MCP journey (sign up → dashboard → refresh stays signed in → log out; `/dashboard` while signed out → login → returns). Results in `verification.md` (FR-01).
