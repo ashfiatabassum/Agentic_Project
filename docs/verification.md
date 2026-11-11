@@ -45,7 +45,7 @@ One row **per skill run**, added in the same session the skill ran. Covers proje
 
 | # | Date | Skill | Milestone / feature | How invoked | What it did | Outcome / decisions / fixes | Commit |
 | ---: | --- | --- | --- | --- | --- | --- | --- |
-| | | | | | | | |
+| 1 | 2026-11-11 | `grill-me` → `grilling` | M1 planning: FR-01 Login (cross-table conventions included) | typed (`/grill-me`) | Interviewed the developer one question at a time (Q1–Q16) with a recommended answer for each; looked up facts itself (PRD, data model, `mysql` skill) instead of asking. | 17 decisions settled for Login (sessions table with hashed tokens, scrypt passwords, 7-day fixed sessions, generic login errors, rate limits, CSRF via SameSite + JSON-only, 4 endpoints, 9 tests + Playwright journey). Developer **overrode two recommendations**: lookup tables for plans (Q4: chose b over VARCHAR+CHECK), and supplied the price (৳999/month BDT), resolving a PRD unknown. Developer stopped the session at Spaces (Q16) to list all features first and design tables afterwards. Decisions saved to PRD §10 and data-model.md. | `3c7674e` |
 
 Installed project skills (not uses):
 
