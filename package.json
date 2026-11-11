@@ -1,0 +1,17 @@
+{
+  "name": "testimonial-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Testimonial MVP: React + Vite + Tailwind client, Express API, MySQL",
+  "scripts": {
+    "setup": "npm install && npm --prefix server install && npm --prefix client install",
+    "dev": "concurrently --names api,web --prefix-colors blue,green --kill-others-on-fail \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "test": "npm --prefix server test",
+    "build": "npm --prefix client run build"
+  },
+  "devDependencies": {
+    "concurrently": "10.0.6"
+  }
+}
