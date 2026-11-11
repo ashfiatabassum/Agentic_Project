@@ -23,13 +23,21 @@ This repository currently contains the **requirements and agentic workflow start
 2. **Create the database and app user** as the MySQL root user (choose your own password):
    ```sql
    CREATE DATABASE testimonial_mvp CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+   CREATE DATABASE testimonial_mvp_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
    CREATE USER 'testimonial_app'@'localhost' IDENTIFIED BY 'your-password';
    CREATE USER 'testimonial_app'@'127.0.0.1' IDENTIFIED BY 'your-password';
    GRANT ALL PRIVILEGES ON testimonial_mvp.* TO 'testimonial_app'@'localhost';
    GRANT ALL PRIVILEGES ON testimonial_mvp.* TO 'testimonial_app'@'127.0.0.1';
+   GRANT ALL PRIVILEGES ON testimonial_mvp_test.* TO 'testimonial_app'@'localhost';
+   GRANT ALL PRIVILEGES ON testimonial_mvp_test.* TO 'testimonial_app'@'127.0.0.1';
    ```
-3. **Configure the server:** copy `server/.env.example` to `server/.env` and set `DB_PASSWORD` to the same password. `server/.env` is gitignored; never commit it.
-4. **Create tables:** migration command **TBD** (not built yet).
+3. **Configure the server:** copy `server/.env.example` to `server/.env` and `server/.env.test.example` to `server/.env.test`, and set `DB_PASSWORD` in both. Both files are gitignored; never commit them.
+4. **Create tables and demo data:**
+   ```bash
+   npm run migrate   # creates the 10 tables (safe to re-run)
+   npm run seed      # demo owner demo@example.com / demo-password, 2 spaces, sample testimonials
+   ```
+   `npm run db:reset` wipes and re-creates the dev database (development only).
 5. **Start the app:**
    ```bash
    npm run dev
@@ -37,7 +45,7 @@ This repository currently contains the **requirements and agentic workflow start
    This starts the API on http://localhost:4000 and the client on http://localhost:5173. Open the client URL; `/api` requests are proxied to the API.
 6. **Check:** http://localhost:4000/api/health should return `{"status":"ok","api":"ok","database":"ok"}`.
 
-Other commands: `npm test` (server tests), `npm run build` (client production build), `npm run dev:server` / `npm run dev:client` (one side only).
+Other commands: `npm test` (server tests; resets and uses the separate `testimonial_mvp_test` database, never the dev data), `npm run build` (client production build), `npm run dev:server` / `npm run dev:client` (one side only).
 
 The public collection link must point to a reachable host when demonstrating from another device. A localhost link works only on the same computer.
 

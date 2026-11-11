@@ -28,15 +28,18 @@ Run from the repository root unless noted. Only list commands that have actually
 - Start API (port 4000) and client (port 5173) together: `npm run dev`
 - Start only the API: `npm run dev:server` (or `npm run dev` inside `server/`)
 - Start only the client: `npm run dev:client` (or `npm run dev` inside `client/`)
-- Server tests (Node test runner): `npm test` — to also exercise the live database: `cd server && node --env-file=.env --test`
+- Apply database migrations (dev DB from `server/.env`): `npm run migrate` — idempotent; fails if an applied migration file was edited
+- Wipe and re-create the dev database: `npm run db:reset` (refused unless the DB is `testimonial_mvp`/`testimonial_mvp_test` and `NODE_ENV` is not production)
+- Demo data: `npm run seed` (demo owner `demo@example.com` / `demo-password`, 2 spaces; skips if already seeded)
+- Server tests: `npm test` — resets and migrates **`testimonial_mvp_test`** (from `server/.env.test`) first, then runs `server/test/**/*.test.js` one file at a time. Tests refuse to run against any other database. Never point tests at the dev database.
 - Client production build: `npm run build`
 - Health check: `GET http://localhost:4000/api/health` or through the Vite proxy at `http://localhost:5173/api/health`; 200 with `"database":"ok"` when MySQL is reachable
-- Create/migrate MySQL tables: TBD (migration runner not built yet)
+- New schema change: add a new `server/db/migrations/NNN_description.sql` (one table per file), update `docs/data-model.md` first; never edit an applied migration.
 
 Local environment notes:
 
 - MySQL 8.0 runs as the Windows service `MySQL80`; the CLI is `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"` (not on PATH).
-- Database `testimonial_mvp`, app user `testimonial_app` exists for both `localhost` and `127.0.0.1` with the same password. Credentials live only in `server/.env` (gitignored); copy from `server/.env.example`. Never print or commit the password.
+- Databases `testimonial_mvp` (dev) and `testimonial_mvp_test` (tests); app user `testimonial_app` exists for both `localhost` and `127.0.0.1` with the same password and has full rights on both. Credentials live only in `server/.env` and `server/.env.test` (gitignored); copy from the `.example` files. Never print or commit the password.
 - In Git Bash, backslashes in command-line arguments to Windows programs get mangled; put test code with Windows paths or regexes in a script file instead of `node -e`.
 - Pinned versions: Express 5.3.0, mysql2 3.24.6, React 19.1.10, Vite 8.3.5, Tailwind 4.3.3, concurrently 10.0.6, Playwright MCP 0.0.84.
 

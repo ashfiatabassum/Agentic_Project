@@ -8,6 +8,9 @@
     "dev": "concurrently --names api,web --prefix-colors blue,green --kill-others-on-fail \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
+    "migrate": "npm --prefix server run migrate",
+    "db:reset": "npm --prefix server run db:reset",
+    "seed": "npm --prefix server run seed",
     "test": "npm --prefix server test",
     "build": "npm --prefix client run build"
   },

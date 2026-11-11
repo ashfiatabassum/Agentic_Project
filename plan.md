@@ -65,7 +65,7 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 
 **Goal:** the final schema exists in MySQL, created by repeatable migrations, with seed data and automated tests proving the constraints, accept-but-lock ranking, and concurrency rules. No feature endpoints yet.
 **Requirements covered:** assignment step 3 (data model in the repo); data foundations for FR-01 – FR-13 ([data-model.md](docs/data-model.md), Final).
-**Branch:** `main`. **Status:** planning done; implementation next (in a fresh Claude Code session so the hook runs).
+**Branch:** `main`. **Status:** ✅ complete (11 November 2026) — implemented in the original session; hook evidence deferred (see Agentic tools).
 
 ### Planning (done)
 
@@ -76,28 +76,33 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 
 ### Tasks
 
-- [ ] **Migration runner** `server/db/migrate.js`: creates `schema_migrations`; applies `server/db/migrations/NNN_*.sql` in order, one file per table; records filename + SHA-256 checksum; fails loudly if an applied file was edited; forward-only
-- [ ] **Migrations** `001`–`009` in the dependency order of data-model.md (`plans` → `themes` → `users` → `sessions` → `spaces` → `space_questions` → `testimonials` → `testimonial_answers` → `billing_events`), with the seed rows for `plans` and `themes` in their migrations
-- [ ] **Scripts** (server and root): `npm run migrate`; `npm run db:reset` (drops and re-migrates; refuses unless `NODE_ENV` is not `production` **and** the database name is `testimonial_mvp` or `testimonial_mvp_test`); `npm run seed` (one demo owner, two spaces, synthetic testimonials — no real personal data)
-- [ ] **Test database** `testimonial_mvp_test`: developer creates it and grants `testimonial_app` rights (root SQL in README); `server/.env.test` (gitignored) and `server/.env.test.example`; `npm test` migrates the test DB before running
-- [ ] **Schema tests** (`server/test/schema.test.js`), turned from the review script: FKs, unique email/slug, every `CHECK`, flag defaults, question delete keeps snapshot, space delete cascades, accept-but-lock 105 → 100/5 and after upgrade, `EXPLAIN` uses the `(space_id, created_at)` index
-- [ ] **Concurrency tests:** 4 parallel space creations at the Free limit → exactly 3; parallel submissions at the 1,000 hard cap → never more than 1,000 (not yet tested in the review)
-- [ ] **Docs:** migrate/reset/seed/test commands in `CLAUDE.md` and README (replace "TBD"); STATUS updated
+- [x] **Migration runner** `server/db/migrate.js`: creates `schema_migrations`; applies `NNN_*.sql` in order; SHA-256 checksum (line endings normalised); refuses edited or missing applied files; forward-only; **named lock** so two runs cannot collide (added after the `mysql` review)
+- [x] **Migrations** `001`–`009` in dependency order, with `plans` and `themes` seed rows; `.gitattributes` forces LF for `*.sql`
+- [x] **Scripts** (server and root): `npm run migrate`, `npm run db:reset` (guarded: production and unknown DB names refused — verified), `npm run seed` (demo owner, 2 spaces, 5 synthetic testimonials; skips if already seeded)
+- [x] **Test database** `testimonial_mvp_test` created by the developer; `testimonial_app` access verified from both loopback addresses; `server/.env.test` (gitignored) + committed `server/.env.test.example`; `pretest` resets and migrates it
+- [x] **Schema tests** `server/test/schema.test.js` (12 tests) + `password.test.js` (2), from the review script, against the real migrations
+- [x] **Concurrency tests** `server/test/concurrency.test.js`: 4 parallel space creations at the Free limit → exactly 3; 4 parallel submissions at 999 saved → exactly 1 accepted, 1,000 total (hard cap; first time tested)
+- [x] **Docs:** migrate/reset/seed/test commands in `CLAUDE.md` and README; STATUS updated
 
 ### Done when
 
-- [ ] `npm run migrate` on an empty database creates all 10 tables; running it again changes nothing
-- [ ] Editing an applied migration makes `npm run migrate` fail with a clear message
-- [ ] `npm run db:reset` + `npm run seed` gives a working demo dataset; reset refuses on any other database name
-- [ ] `npm test` passes, including schema and both concurrency tests, against `testimonial_mvp_test`
-- [ ] Dev database `testimonial_mvp` untouched by tests
-- [ ] No secrets or generated data committed
+- [x] `npm run migrate` on an empty database creates all 10 tables; running it again reports "0 applied, 9 already up to date"
+- [x] Editing an applied migration makes `npm run migrate` fail: "Migration 002_create_themes.sql was edited after it was applied (checksum mismatch)"
+- [x] `npm run seed` on the migrated dev DB → 1 owner, 2 spaces, 2 questions, 5 testimonials, 10 answers, 2 on the wall; reset refuses `some_other_db` and `NODE_ENV=production`
+- [x] `npm test` → **19/19 pass** (schema, password, concurrency, health) against `testimonial_mvp_test`
+- [x] Dev database `testimonial_mvp` untouched by tests (tests refuse any other DB name; dev DB holds only seed data)
+- [x] No secrets or generated data committed (`server/.env`, `server/.env.test` ignored; verified with `git check-ignore`)
 
 ### Agentic tools
 
-- **Skills:** `mysql` + `review-mysql-model` review the actual migration SQL and runner (log rows in the Skill usage log).
-- **Hook:** expected to fire on `server/**/*.js` edits in the fresh session — record the first observed `Normalized whitespace` message.
+- **Skills:** `mysql` + `review-mysql-model` reviewed the actual migrations, runner, seed, and tests — Skill usage log #4–#5. The built schema was introspected (collations, indexes, FKs, CHECKs, nullable columns) and matched data-model.md; two fixes applied (migration lock, hashing outside the seed transaction).
+- **Hook:** not observed — M1 was implemented in the original session, which never loaded the project hook. Hook evidence is **still required** and deferred to a later milestone run in a fresh session (developer decision, 11 November 2026).
 - **Playwright MCP:** not applicable (no UI in M1).
+
+### Carried forward to M2
+
+- Owner-scoped queries (`spaces.owner_id = <session user>`) and explicit public columns (R7) — no app queries exist yet.
+- Move the quota and hard-cap locking patterns from the tests into real service functions and point the concurrency tests at those services.
 
 ### Risks
 
