@@ -1,7 +1,7 @@
 # Project status and next handoff
 
 **Updated:** 12 November 2026
-**Phase:** M0 and M1 complete. **M2 (auth and spaces) implemented and verified on branch `feature/m2-auth-spaces` — not yet committed.** The developer is checking everything by hand; commits, push, and the pull request happen only after the developer confirms.
+**Phase:** M0, M1, and **M2 (auth and spaces + landing page) complete** — merged into `main` by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) (merge commit `efe21f0`). Next: plan M3 (public form + inbox).
 
 ## Decisions made
 
@@ -23,8 +23,8 @@
 
 Milestones and their tasks live in [`plan.md`](../plan.md).
 
-1. **Developer:** check M2 by hand (`npm run dev`): the landing page at http://localhost:5173/, the redesigned sign up / log in, then the dashboard and space form; confirm plan decisions **E14–E18** (E19–E20 were requested by the developer). M2 is committed on `feature/m2-auth-spaces` (7 commits, not pushed yet).
-2. After confirmation: push the branch, open the PR to `main`, merge, record PR link and merge commit in `verification.md`, delete the branch.
+1. ✅ Done: developer checked M2 by hand and confirmed E14–E18; [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) merged (`efe21f0`). Branch `feature/m2-auth-spaces` kept for now; delete it later (`git branch -d feature/m2-auth-spaces` and `git push origin --delete feature/m2-auth-spaces`).
+2. Next: plan M3 on a new branch `feature/m3-public-form-inbox` from `main`.
 3. Plan **M3 — public form + inbox** (accept but lock, hard cap, photo upload; move the submit locking pattern from `concurrency.test.js` into a service). Re-check the `answeredQuestions` EXPLAIN with real answers.
 4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.

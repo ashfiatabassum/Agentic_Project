@@ -111,7 +111,7 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 
 ---
 
-## M2 — Auth and spaces
+## M2 — Auth and spaces ✅
 
 **Goal:** an owner can sign up, log in, see their dashboard, and create / edit / delete spaces with questions, customer-field settings, theme, brand colour, logo, and a public link — all owner-isolated and limit-enforced on the server. (The customer side comes in M3.)
 **Requirements covered:** FR-01 (fully, PRD §10), FR-02, FR-03 (settings only), FR-04, FR-12 (space limit).
@@ -177,7 +177,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] E20: redesigned sign in / sign up (two-column 960 px card, 48 px / 16 px fields, show/hide password, loading spinner) and matching private header
 - [x] Verify E19–E20: build OK; server tests 42/42; Playwright MCP at 1440×900 and 1024×768 (no horizontal scroll) — all four feature tabs by mouse and keyboard (Arrow keys, End, wrap-around), sign-up validation errors, password toggle, sign up → dashboard, landing shows "Go to dashboard" when signed in, log out, `/spaces/new` → login `?next` → wrong password "Invalid email or password" → correct login returns to `/spaces/new`; console shows only the expected 400/401 API responses, no JavaScript errors; screenshots in `docs/screenshots/m2-landing-*`, `m2-signup-*`, `m2-login-*`; reviewed with `review-react-ui` (#10: 2 fixed, 1 deferred) and `vercel-react-best-practices` (#11: 2 fixed)
 - [x] **Developer manual check** of the whole M2 branch (landing page, sign up / log in, dashboard, space form) — done by the developer, 12 November 2026
-- [ ] Open a pull request `feature/m2-auth-spaces` → `main` (summary, checks run, known gaps); merge after "Done when" passes; record PR link and merge commit. Branch deletion postponed by the developer (delete later).
+- [x] Pull request [#1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) `feature/m2-auth-spaces` → `main` opened and **merged** 12 November 2026 (merge commit `efe21f0`, 10 branch commits); merged `main` re-tested: 42/42, build OK. Branch kept for now at the developer's request (delete later).
 
 ### Done when
 

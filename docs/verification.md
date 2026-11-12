@@ -95,6 +95,12 @@ Available project subagents (read-only; tools `Read, Grep, Glob, Bash`, with Bas
 | `code-reviewer` | Correctness, error handling, validation, SQL and React quality, tests | `.claude/agents/code-reviewer.md` |
 | `security-reviewer` | Owner isolation, sessions, CSRF, public data exposure, XSS, uploads, rate limits, secrets, billing simulation | `.claude/agents/security-reviewer.md` |
 
+## Pull requests and merges
+
+| Milestone | Pull request | Branch | Merge commit | Checks on merged `main` | Branch deleted |
+| --- | --- | --- | --- | --- | --- |
+| M2 auth and spaces (+ E19–E20) | [#1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) — merged 2026-11-12 via `gh pr merge --merge` | `feature/m2-auth-spaces` (10 commits) | `efe21f0` | `npm test` 42/42, `npm run build` OK | Not yet (developer will delete later) |
+
 ## Parallel work and integration
 
 - Independent task:
@@ -127,6 +133,7 @@ Record each mistake, wrong assumption, or failure as it happens (by Claude, by t
 | 2026-11-12 | M2: bugs Claude introduced, caught before commit | First-draft defects in Claude's M2 code: login limiter race; edit form overwrote text typed during save; create-space lock also locked the plans row; failed logout looked successful; `/me` 500 sent owners to login; stale "available" slug message; logout returned 415 (contradicting PRD Q13); dashboard and server disagreed on the limit message; theme radios had a noisy accessible name; logout added a useless `?next`; question inputs unusable at 375 px; signup text hard-coded the plan limit. | Claude (initial implementation). | Playwright MCP journey (4), `review-react-ui` (2), `code-reviewer`/`security-reviewer` (6, two overlapping), `requirements-reviewer` (2). | All fixed; tests 42/42, build OK, browser re-checks recorded in FR-01 – FR-04 rows. |
 | 2026-11-12 | M2: session hand-over | The M2 session closed with 39 uncommitted, verified files on `feature/m2-auth-spaces`; a second session then had to continue. Earlier, a leftover background `npm run dev` from that session blocked port 5173 and the developer saw a white screen. | Environment/workflow: the first session stopped before committing; its background dev server outlived it. | Developer's `npm run dev` error ("Port 5173 is already in use"), then `Get-NetTCPConnection` and the process tree. | Stopped only that dev-server process tree; re-ran tests (42/42) and build, reviewed one screenshot for personal data, then committed the work in four commits (`2a5a281`, `abf6873`, `8bcc6db`, `9a8eb95`). Lesson: commit verified work before ending a session. |
 | 2026-11-12 | M2 E19–E20: Playwright checks | (a) The first keyboard test of the feature tabs reported no change: focus was not on a tab when the arrow key was pressed. (b) A screenshot named `landing-tab-showcase.png` showed the Manage tab. | Claude's test steps: (a) focus left the tab after an `evaluate` call; (b) the file was first saved during the failed attempt and then read back stale. Not app bugs. | Checking `document.activeElement` and the selected tab; comparing the image with the panel heading. | (a) Focused the tab explicitly and repeated as a user would (click, then Arrow Right): ArrowRight/End/wrap-around all work. (b) Re-took the screenshot under a new name; panel heading "Wall of Love" confirmed. |
+| 2026-11-12 | M2: recording the sign-off | A `sed` edit replaced the plan.md heading "Decisions made during implementation (E14–E18)" with an empty line. | Claude: the replacement text began with `###` while `#` was also the `sed` delimiter, so the command was misparsed. | The printed result of the edit showed a blank line where the heading should be. | Restored the heading with the Edit tool before opening the PR (`c8343c6`). Lesson: use the Edit tool (or a delimiter that cannot appear in the text) for Markdown edits. |
 
 ## Remaining gaps
 
