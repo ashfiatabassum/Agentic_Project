@@ -44,9 +44,9 @@ Details per milestone: [plan.md](../plan.md); evidence: [verification.md](verifi
 ## Next actions (developer)
 
 1. Record a 2–5 minute screen recording of the app (or submit the screenshots in `docs/screenshots/`). Log in as `demo@example.com` / `demo-password` (still on Free, so the upgrade can be shown).
-2. Write the 200–300-word reflection in your own words and export it as PDF or DOCX; facts are in [reflection-notes.md](reflection-notes.md).
+2. Write the 200–300-word reflection in your own words and export it as PDF or DOCX (submitted on the LMS, not kept in the repo).
 3. Delete the merged branches when ready (`git branch -d …` and `git push origin --delete …` for `feature/m2-auth-spaces`, `feature/m3-public-form-inbox`, `feature/m4-moderation-wall`, `feature/m5-embed`, `feature/m5-dashboard-embed-link`, `feature/m6-dashboard-stats`, `feature/m7-billing-demo`), and remove the M5 worktree (`git worktree remove ../Agentic_Project-m5`, run from `C:\Agentic_Project`).
-4. Tick the remaining README submission-checklist items and submit on the LMS.
+4. Check the repository and the uploaded evidence, then submit on the LMS.
 
 ## Open questions / known limitations
 
