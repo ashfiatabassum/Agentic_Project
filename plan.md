@@ -111,6 +111,68 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 
 ---
 
-## Next milestones
+## M2 — Auth and spaces
 
-To be planned one at a time after M1: **M2 — Auth + spaces + public form + inbox** (first vertical slice).
+**Goal:** an owner can sign up, log in, see their dashboard, and create / edit / delete spaces with questions, customer-field settings, theme, brand colour, logo, and a public link — all owner-isolated and limit-enforced on the server. (The customer side comes in M3.)
+**Requirements covered:** FR-01 (fully, PRD §10), FR-02, FR-03 (settings only), FR-04, FR-12 (space limit).
+**Branch:** `feature/m2-auth-spaces`, merged into `main` through a pull request when "Done when" passes (see `CLAUDE.md` → Git workflow). Built in a **fresh Claude Code session** so the formatting hook runs.
+**Status:** plan approved 12 November 2026 (E0–E13 accepted as proposed); implementation not started.
+
+### Decisions (E0–E13) — approved
+
+| # | Decision | Default |
+| --- | --- | --- |
+| E0 | **Split** the old "M2" | M2 = auth + spaces; **M3 = public form + inbox** (customer submits → owner sees it). Smaller slices, each verifiable in the browser. Later milestones shift by one (see roadmap below). |
+| E1 | Client routing | `react-router` (pinned exact version). Routes: `/signup`, `/login`, `/dashboard`, `/spaces/new`, `/spaces/:id/edit`, `/spaces/:id/created`. Private routes redirect to `/login?next=…` (PRD §10). |
+| E2 | Space form layout | One page, sections in order: **Basics** (name, subtitle, collection prompt, thank-you message) → **Public link** (slug) → **Questions** → **Customer fields** → **Look** (theme, brand colour, logo). Save button at the bottom; field errors shown inline. No live preview in M2. |
+| E3 | Slug | Auto-filled from the name until the owner edits it; ASCII only (non-ASCII names such as Bangla fall back to `space-xxxxxx`); availability checked on blur (`GET /api/spaces/slug-available`); if taken, suggest `-2`, `-3`. Editing an existing slug shows "the old link will stop working". |
+| E4 | Questions editor | List of up to 5; add, edit text, remove, reorder with **↑ / ↓ buttons** (no drag-and-drop). On save the server compares with the stored list: kept → updated, new → inserted, removed → deleted if unanswered, deactivated if answered (D4). |
+| E5 | Customer fields | Name and email shown as fixed "Always required". Job title, company, social link, photo, rating: one **Off / Optional / Required** control each. |
+| E6 | Theme and colour | Three theme cards (Light, Dark, Warm) from `GET /api/themes`; colour via `<input type="color">` plus a hex text box. |
+| E7 | Logo | Uploaded **after** the space exists: `POST /api/spaces/:id/logo` (multipart, `multer` pinned), `DELETE /api/spaces/:id/logo`. JPEG/PNG/WebP detected from magic bytes, ≤ 2 MB, random file name in `server/uploads/logos/`, old file deleted on replace. Served read-only at `/uploads/...`. |
+| E8 | Space API | `GET /api/spaces` (mine, with testimonial counts), `POST /api/spaces` (space-limit lock from M1 moved into a real service), `GET/PUT/DELETE /api/spaces/:id`, `GET /api/spaces/slug-available`, `GET /api/themes`. Another owner's space → **404** (does not reveal it exists). |
+| E9 | Delete space | Confirmation dialog: owner types the space name; shows how many testimonials will be deleted. Server deletes the row (cascade) then the logo file. |
+| E10 | Dashboard (M2 version) | Header: name, plan badge, **Log out**. "Spaces: 1 of 3" usage. Space cards: name, public link (copy button), testimonial count, Edit. "Create space" disabled with an explanation at the limit (server still enforces). Full statistics come with the dashboard milestone. |
+| E11 | Server building blocks | No new libraries for cookies or rate limiting: small own modules for cookie parsing, `requireAuth`, JSON-only guard (415), in-memory rate limiter, validation helpers, and one error format (`{ error, fields }`). |
+| E12 | Client building blocks | `AuthContext` (calls `/api/auth/me` once), one `api()` fetch helper (JSON, error shape, 401 → login redirect), plain React state for forms; no data-fetching library. Tailwind, labelled inputs, keyboard-usable controls. |
+| E13 | "Space created" page | Shows the public link `http://localhost:5173/s/<slug>` with Copy, plus "Edit space" and "Go to dashboard". (The link opens a page that arrives in M3; until then it shows "Coming soon".) |
+
+### Tasks
+
+- [ ] Create branch `feature/m2-auth-spaces` from up-to-date `main`
+- [ ] Add pinned dependencies: `react-router` (client), `multer` (server) — versions at least two weeks old
+- [ ] Server: auth module per PRD §10 — register, login, logout, me; scrypt (M1 `password.js`); sessions table; cookie flags; generic login error with dummy-hash timing; rate limits; JSON-only guard; `requireAuth`
+- [ ] Server: spaces service + routes (E3–E9) with owner scoping on every query; space-limit lock moved from the M1 test into the service; questions diff; logo upload/replace/remove with file clean-up
+- [ ] Client: router, `AuthContext`, `api()` helper, layout with header; pages `/signup`, `/login`, `/dashboard`, `/spaces/new`, `/spaces/:id/edit`, `/spaces/:id/created`
+- [ ] Tests (API, `node:test` against `testimonial_mvp_test`): the 9 login tests from PRD §10 Q14; spaces CRUD; **owner B gets 404** on A's space read/update/delete/logo; 4 concurrent creates at the Free limit → 3 (now via the real service); slug rules and availability; questions diff (unanswered deleted, answered deactivated, max 5); logo: wrong type by content, > 2 MB, replace deletes old file; delete space removes logo file
+- [ ] Reviews: `review-react-ui` + `vercel-react-best-practices` on the client; `review-mysql-model` + `mysql` on the new queries; subagents `code-reviewer` + `security-reviewer`
+- [ ] Browser check with **Playwright MCP**: sign up → dashboard → create space (questions, fields, theme, colour, logo) → created page → dashboard shows it → edit → log out → `/dashboard` redirects to login → log in returns to it; second owner cannot open the first owner's edit URL
+- [ ] Docs: verification.md (FR-01–04, FR-12 rows, skill/subagent/hook logs), README status, STATUS, this plan
+- [ ] Open a pull request `feature/m2-auth-spaces` → `main` (summary, checks run, known gaps); merge after "Done when" passes; record PR link and merge commit; delete the branch
+
+### Done when
+
+- [ ] All server tests pass (M1's 19 plus the new auth and spaces tests)
+- [ ] Playwright journey above passes, with screenshots of dashboard, space form, and created page
+- [ ] Another owner gets 404 for every space endpoint of someone else (tested)
+- [ ] The 4th space on Free is refused even under concurrent requests (tested through the real service)
+- [ ] Hook observed firing on a real edit; skill and subagent findings fixed or recorded
+- [ ] `npm run build` succeeds; no secrets or uploaded files committed (`server/uploads/` is gitignored)
+
+### Risks
+
+- Largest milestone so far (two features, uploads, first real UI): keep commits per task.
+- Windows file paths in upload handling: build paths with `path.join`, test with real files.
+
+---
+
+## Roadmap after M2 (E0 approved)
+
+| Milestone | Scope |
+| --- | --- |
+| M3 | Public collection form + thank-you + inbox (FR-05 – FR-07; accept but lock; hard cap; photo upload) |
+| M4 | Moderation + Wall of Love (FR-08, FR-09) |
+| M5 | Embed builder (FR-10) — **parallel branch and session**, merged into `main` |
+| M6 | Dashboard statistics + plan limits UI (FR-11, FR-12) |
+| M7 | Billing demo (FR-13) |
+| M8 | Final check, README, recording, reflection, submission |

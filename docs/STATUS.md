@@ -1,7 +1,7 @@
 # Project status and next handoff
 
 **Updated:** 11 November 2026
-**Phase:** M0 (setup) and M1 (data model and migrations) complete. No user-facing feature implemented yet; M2 (first vertical slice) is next.
+**Phase:** M0 and M1 complete. **M2 (auth and spaces) planned and approved** (E0–E13, 12 Nov 2026); to be built on branch `feature/m2-auth-spaces` in a fresh session and merged by pull request.
 
 ## Decisions made
 
@@ -21,7 +21,7 @@
 
 Milestones and their tasks live in [`plan.md`](../plan.md).
 
-1. Plan **M2 — Auth + spaces + public form + inbox** in `plan.md` (login is already decided in PRD §10; spaces, public form, and inbox UI details still to settle).
+1. Build **M2 — Auth and spaces** per `plan.md` on branch `feature/m2-auth-spaces` (fresh Claude Code session), then merge by pull request. M3 = public form + inbox.
 2. Carry forward from M1: owner-scoped queries, explicit public columns (R7), and moving the quota/hard-cap locking from tests into real service functions.
 3. Hook evidence: still required; run a later milestone in a fresh Claude Code session so the hook fires on real edits.
 4. Still open: compare the Project Requirements lesson with the PRD if it becomes available.

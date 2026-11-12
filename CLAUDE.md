@@ -55,6 +55,15 @@ The assignment requires at least two agentic tools. This project's **core tools*
 6. Confirm the PostToolUse formatting hook fires on an applicable code edit. Hook output does not replace tests.
 7. Update `docs/STATUS.md`, `docs/verification.md`, and README status. Mark plan/OpenSpec tasks complete only after verification.
 
+## Git workflow (from M2 onward)
+
+- `main` always works: tests pass and the app runs. **Never commit feature code directly to `main`.** Planning and documentation-only commits may go to `main`.
+- One branch per milestone, created from an up-to-date `main`: `feature/m<N>-<short-name>` (for example `feature/m2-auth-spaces`). Commit in small steps, one task at a time, with clear messages.
+- Before merging, on the branch: all tests pass, `npm run build` succeeds, the milestone's Playwright check is done, skill and subagent reviews are run and their findings fixed or recorded, and the plan's "Done when" boxes are ticked.
+- Merge through a **pull request** to `main` (GitHub CLI `gh pr create` / `gh pr merge`, or the GitHub website). The PR description lists what changed, checks run, and known gaps. Record the PR link and merge commit in `docs/verification.md`, then delete the branch.
+- Never force-push to `main`, rewrite published history, or merge with failing tests. Resolve conflicts on the feature branch, re-run tests, then merge.
+- The embed milestone (M5) is built on its own branch **in a separate, parallel Claude Code session** to satisfy the assignment's parallel-work requirement.
+
 Run at least one independent task in a **separate session and branch/worktree**, then merge it and verify the integrated application. A subagent by itself does not prove this parallel-session requirement. Keep the branch name, merge commit, and integration result in the verification log.
 
 ## Skills: which to use
