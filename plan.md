@@ -378,7 +378,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] **Developer manual check** of the M5 branch; E73–E76 confirmed and commits approved (12 November 2026) — `551334e`, `b0bb8d0`, `15fe019`, `e09d182`
 - [x] Push, PR to `main` — [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5), merge commit `393c4bd` (M6 merged first, so `main` at `b18a04f` was merged into this branch: conflicts only in the four shared docs, resolved by keeping both sides, `3ebf40f`; then `npm test` 108/108, client tests 5/5, build OK), merged and recorded
 - [x] Dashboard space cards link to the builder ("Embed"), deferred until M6 was merged (E76) — `feature/m5-dashboard-embed-link`, browser-checked
-- [ ] Integration check on `main` after both merges: tests plus a browser check of the embed and the dashboard together (parallel-work evidence)
+- [x] Integration check on `main` after both merges (`b19466c`): `npm test` 108/108, client tests 5/5, build OK; submission → dashboard count and activity → add to wall → embed on another origin; `/dashboard` cannot be framed (parallel-work evidence in `docs/verification.md`)
 
 ### Done when
 
