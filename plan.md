@@ -353,3 +353,14 @@ The assignment requires at least one independent task to be built in a **separat
 | Test database | `npm test` wipes the test DB, so both sessions must not run it at the same time against one database. Either session B gets its own test DB (`testimonial_mvp_test_m5`, which means widening the guard's allow-list), or only one session runs tests at a time. Choose when M5/M6 are planned. |
 | Merging | Each branch has its own PR. The branch that merges second first merges `main` into itself, resolves any conflicts, reruns the tests and build, and then merges. Afterwards a Playwright check on `main` covers the embed and the dashboard together. |
 | Evidence (`docs/verification.md`) | Both branch names, which session built each one, commit times that overlap, both PR links and merge commits, any conflicts and how they were resolved, and the test and browser results on `main` after both merges. |
+
+### Parallel work rules (E55) — approved by the developer, 12 November 2026
+
+| Item | Decision |
+| --- | --- |
+| Test database | **One shared test DB (`testimonial_mvp_test`) for this one milestone pair; no second database.** Only one window runs `npm test` at a time: before running it, a session asks the developer whether the other window is testing. Tests run only at checkpoints (after a task, before a commit, before the PR). An unexpected database failure (`ER_NO_SUCH_TABLE`, rows missing, a test that just passed) means "re-run alone", not "the code is broken". Within a window, only the `code-reviewer` subagent runs tests. Trade-off chosen on purpose: simpler setup instead of a test DB per developer, which a real team would use. |
+| Ports | Session A (M6, this folder) keeps 4000/5173. Session B (M5, worktree) uses **API 4001, client 5174**: `PORT=4001` in its `server/.env`, and its first commit makes `client/vite.config.js` read the client port and the API proxy target from environment variables (defaults 5173/4000, so session A is unaffected). |
+| Dev database | Shared (`testimonial_mvp`); neither session resets it. Demo data may change during browser checks; record it. |
+| Decision numbers | To avoid clashes: **M5 uses E60–E79, M6 uses E80–E99.** |
+| Shared files | Each session edits only its own milestone section in `plan.md` and adds its own rows to `docs/verification.md` and `docs/STATUS.md`. Conflicts in these files are expected and resolved at merge time, by the branch that merges second. New files get milestone-specific names (`server/test/embed.test.js`, `docs/screenshots/m5-*`). |
+| Commits and pushes | As always: each session commits or pushes only after the developer's explicit OK. |
