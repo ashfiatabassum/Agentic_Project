@@ -58,7 +58,7 @@ The public collection link must point to a reachable host when demonstrating fro
 | Anonymous text submission and thank-you page | Implemented and verified (M3, merged in PR #2) |
 | Inbox moderation and Wall of Love | Inbox merged (M3). Moderation (edit, hide, favourite, wall, delete) and the public wall `/s/:slug/wall` are implemented and verified (M4, merged in PR #3) |
 | Responsive iframe embed | Planned |
-| Dashboard statistics | Implemented and verified on branch `feature/m6-dashboard-stats` (M6), checked by the developer; not merged yet |
+| Dashboard statistics | Implemented and verified (M6, merged in PR #4) |
 | Free/Paid quota enforcement | Space limit implemented and verified (M2, concurrency-safe); testimonial limits with accept but lock and the 1,000 hard cap implemented and verified (M3); deleting frees capacity (M4) |
 | Demo upgrade and saved plan state | Planned |
 | Real Stripe checkout and webhooks | Not in this demo scope |

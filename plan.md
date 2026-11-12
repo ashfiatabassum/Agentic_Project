@@ -330,11 +330,11 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 ---
 
-## M6 — Dashboard statistics and plan limits UI
+## M6 — Dashboard statistics and plan limits UI ✅
 
 **Goal:** the dashboard shows the owner's totals (spaces, testimonials, locked), current plan and usage against its limits, recent activity, and a daily submissions graph with a 7/30-day switch. Free owners see an upgrade prompt. All numbers are calculated on the server for the signed-in owner only.
 **Requirements covered:** FR-11, FR-12 (limits shown in the UI); PRD §11.7 and §11.8; data-model D8 (recent activity derived, not stored).
-**Branch:** `feature/m6-dashboard-stats` from `main`, built in **session A** (this folder) while session B builds M5 in the worktree (E53, E55). Merged by pull request. **Status:** implemented, reviewed, and browser-verified on the branch (12 November 2026); checked by hand by the developer and E92–E93 confirmed (12 November 2026); committed on the branch, push and PR wait for the developer.
+**Branch:** `feature/m6-dashboard-stats` from `main`, built in **session A** (this folder) while session B builds M5 in the worktree (E53, E55). Merged by pull request. **Status:** implemented, reviewed, and browser-verified on the branch (12 November 2026); checked by hand by the developer and E92–E93 confirmed (12 November 2026); merged by [PR #4](https://github.com/ashfiatabassum/Agentic_Project/pull/4), merge commit `139d025` (first of the M5/M6 pair; M5 must merge `main` into its branch and re-test before merging, E53).
 **Schema:** no migration. The graph uses the existing index `(space_id, created_at)`; `billing_events` exists (M1) and stays empty until M7.
 
 ### Decisions (E80–E91) — approved by the developer, 12 November 2026
@@ -385,7 +385,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
   - a second owner sees only their own numbers.
 - [x] Docs: verification.md (FR-11, FR-12 rows; skill, subagent, and issue logs), STATUS, README status, this plan
 - [x] **Developer manual check** of the M6 branch and E92–E93 confirmed — done by the developer, 12 November 2026
-- [ ] Push, PR to `main`, merge (after or before M5 — the second to merge brings in `main` and re-tests, E53), record the PR and merge commit
+- [x] Push, PR to `main`, merge, record the PR and merge commit — [PR #4](https://github.com/ashfiatabassum/Agentic_Project/pull/4), merge commit `139d025`, merged first; on `main`: same tree as the 99/99 branch head, client tests 5/5, build OK
 
 ### Done when
 
