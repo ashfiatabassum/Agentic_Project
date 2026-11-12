@@ -149,6 +149,7 @@ Available project subagents (read-only; tools `Read, Grep, Glob, Bash`, with Bas
 - Commit times (to show overlap): M5 work began on `5a0f8b9` at the same time as M6; M5 commits `551334e`, `b0bb8d0`, `15fe019`, `e09d182` (12 Nov 2026, 17:47, after the developer's review); M6 was merged first (PR #4, `139d025`) and its docs commit `b18a04f` followed on `main`.
 - Merge order: M6 first, M5 second (E53). Session B merged `origin/main` (`b18a04f`) into `feature/m5-embed` before opening its PR.
 - Conflicts and resolution: `plan.md`, `docs/verification.md`, `docs/STATUS.md`, `README.md` — all "both sides added" (M5 and M6 sections, FR rows, log rows); resolved by keeping both (M5 section before M6 in the plan). `server/src/app.js` merged automatically (M6's `/api/dashboard` route and M5's `X-Frame-Options` header). The shared logs also had a **numbering clash git could not see**: both sessions used Skill usage log #20–21 and Subagent usage log #10–11; M6 (merged first) kept its numbers and M5's rows were renumbered to #24–25 and #12–14, with every M5 reference updated.
+- Checks on `feature/m5-embed` after merging `main` (merge commit `3ebf40f`), in a test turn the developer granted: `npm test` **108/108 pass** (99 from M1–M4 + M6, 9 M5), `npm run test:client` **5/5**, `npm run build` OK.
 - Merge commit: _pending_ (PR not opened yet).
 - Integrated checks after merge: _pending_ (Playwright check of the embed and the dashboard together on `main`).
 

@@ -36,7 +36,7 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 2. ✅ Done: developer checked M3 by hand and confirmed E34–E38; [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2) merged (`76a39c8`). Branch `feature/m3-public-form-inbox` kept for now; delete it later together with the M2 branch.
 3. ✅ Developer checked M4 by hand and confirmed E54 (12 November 2026). [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) merged (`d0149db`; 85/85 tests and build OK on `main`). Branch `feature/m4-moderation-wall` kept for now; delete it later with the M2/M3 branches.
 6. After M4 merges: M5 (embed) and M6 (dashboard) in parallel sessions per plan.md E53.
-7. M5 (session B): ✅ developer reviewed M5, confirmed E73–E76 and approved the commits (12 November 2026). Next: merge `main` (M6 merged first), tests, then PR and merge per E53 (the branch that merges second merges `main` first). After M6 merges, add the dashboard link to the builder.
+7. M5 (session B): ✅ developer reviewed M5, confirmed E73–E76 and approved the commits (12 November 2026). `main` (with M6) merged into the branch (`3ebf40f`): `npm test` 108/108, client tests 5/5, build OK. Next: push, PR and merge (with the developer's OK) (the branch that merges second merges `main` first). After M6 merges, add the dashboard link to the builder.
 4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
 

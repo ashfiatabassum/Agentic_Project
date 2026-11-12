@@ -376,7 +376,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] Playwright MCP check (E71); screenshots `docs/screenshots/m5-*` (`m5-host-grid-1280`, `m5-host-carousel-dark-375`, `m5-builder-1280`, `m5-framing-blocked`)
 - [x] Docs: verification.md (FR-10 row; parallel-work evidence: branch, session, commit times; skill, subagent, issue logs), STATUS, README (status, embed usage, production header note), this plan
 - [x] **Developer manual check** of the M5 branch; E73–E76 confirmed and commits approved (12 November 2026) — `551334e`, `b0bb8d0`, `15fe019`, `e09d182`
-- [ ] Push, PR to `main` (M6 merged first, so `main` at `b18a04f` was merged into this branch: conflicts only in the four shared docs, resolved by keeping both sides; tests and build to rerun), merge, record PR and merge commit; Playwright check of embed + dashboard together on `main`
+- [ ] Push, PR to `main` (M6 merged first, so `main` at `b18a04f` was merged into this branch: conflicts only in the four shared docs, resolved by keeping both sides, `3ebf40f`; then `npm test` 108/108, client tests 5/5, build OK), merge, record PR and merge commit; Playwright check of embed + dashboard together on `main`
 
 ### Done when
 
