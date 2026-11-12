@@ -199,7 +199,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 **Goal:** a customer opens a space's public link without an account, fills in the configured fields, rating, answers, photo, and consent, submits, and sees the thank-you message; the owner sees it in that space's inbox with search, filters, and full details. Plan limits use **accept but lock**; the 1,000 hard cap holds under concurrency.
 **Requirements covered:** FR-05, FR-06, FR-07, FR-12 (testimonial limits), FR-03 (fields shown to customers), FR-04 (theme, colour, logo on the public page); PRD §5 rules (consent, accept but lock, rate limits, no private data in public APIs).
-**Branch:** `feature/m3-public-form-inbox` from `main`, merged by pull request (CLAUDE.md → Git workflow). **Status:** implemented, reviewed, and browser-verified on the branch (12 November 2026); waiting for the developer's manual check. Moderation actions (edit, hide, favourite, wall, delete) are **M4**.
+**Branch:** `feature/m3-public-form-inbox` from `main`, merged by pull request (CLAUDE.md → Git workflow). **Status:** implemented, reviewed, and browser-verified on the branch (12 November 2026); checked by hand by the developer, E34–E38 confirmed. Moderation actions (edit, hide, favourite, wall, delete) are **M4**.
 
 ### Decisions (E21–E33) — approved by the developer, 12 November 2026
 
@@ -219,7 +219,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 | E32 | Photo URLs | Stored as `photos/<random>.ext`, served read-only from `/uploads/photos/` (random 128-bit names). Customer email is never sent to public pages. |
 | E33 | Demo data | `npm run seed` unchanged; for the locked case, tests and Playwright create rows directly in the test database. |
 
-### Decisions added after the M3 reviews (E34–E37) — for the developer to confirm
+### Decisions added after the M3 reviews (E34–E38) — confirmed by the developer, 12 November 2026
 
 | # | Decision | Chosen |
 | --- | --- | --- |
@@ -240,7 +240,8 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] Reviews: `review-react-ui`, `vercel-react-best-practices`, `mysql` (EXPLAIN ANALYZE, 1 fix), `review-mysql-model` — Skill usage log #12–#15; subagents `security-reviewer`, `code-reviewer`, `requirements-reviewer` — Subagent usage log #4–#6; all findings fixed or recorded (E34–E37)
 - [x] Playwright MCP: logged-out customer on a warm and a dark space (fields per mode, unchecked consents, errors, photo upload, thank-you focus, 375 px); owner inbox order, filter, search, detail; locked banner after 101 testimonials; second owner → 404; review fixes re-checked ("form changed" message, Clear rating, "Testimonial sent"); screenshots `docs/screenshots/m3-*`
 - [x] Docs: verification.md (FR-03 – FR-07, FR-12 rows, skill/subagent/issue logs), STATUS, this plan
-- [ ] Developer manual check; then push, PR to `main`, merge, record PR and merge commit
+- [x] **Developer manual check** of the whole M3 branch (public form, inbox, breadcrumbs) and E34–E38 confirmed — done by the developer, 12 November 2026
+- [ ] Push, PR to `main`, merge, record PR and merge commit
 
 ### Done when
 

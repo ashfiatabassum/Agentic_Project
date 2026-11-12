@@ -25,7 +25,7 @@
 Milestones and their tasks live in [`plan.md`](../plan.md).
 
 1. ✅ Done: developer checked M2 by hand and confirmed E14–E18; [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) merged (`efe21f0`). Branch `feature/m2-auth-spaces` kept for now; delete it later (`git branch -d feature/m2-auth-spaces` and `git push origin --delete feature/m2-auth-spaces`).
-2. **Developer:** check M3 by hand — open a space's public link in a private/incognito window (no login), submit a testimonial, then see it in the owner inbox; confirm decisions **E34–E37** in `plan.md`. Then push, PR, merge.
+2. ✅ Done: developer checked M3 by hand and confirmed E34–E38. Next: push, PR, merge (Claude).
 3. Next milestone after the merge: plan **M4 — moderation + Wall of Love** (edit, hide, favourite, wall, delete; public wall page).
 4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
