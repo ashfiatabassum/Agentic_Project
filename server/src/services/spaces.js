@@ -236,7 +236,7 @@ export async function createSpace(ownerId, { values, questions }) {
   try {
     return await withTransaction(async (conn) => {
       const [[owner]] = await conn.execute(
-        `SELECT u.id, p.name AS plan_name, p.max_spaces
+        `SELECT u.id, u.plan_code, p.name AS plan_name, p.max_spaces
            FROM users u JOIN plans p ON p.code = u.plan_code
           WHERE u.id = ? FOR UPDATE OF u`, // lock only the owner row, never the shared plans row
         [ownerId],
@@ -244,8 +244,9 @@ export async function createSpace(ownerId, { values, questions }) {
       if (!owner) throw notFound();
       const [[{ n }]] = await conn.execute('SELECT COUNT(*) AS n FROM spaces WHERE owner_id = ?', [ownerId]);
       if (Number(n) >= owner.max_spaces) {
-        // Upgrading (billing demo) arrives in M7; until then the only way to make room is deleting.
-        throw new HttpError(403, `Your ${owner.plan_name} plan allows ${owner.max_spaces} spaces. Delete a space to make room.`);
+        // E107: Free owners can make room by upgrading (billing demo) or deleting a space.
+        const room = owner.plan_code === 'free' ? 'Upgrade to Paid (demo) or delete a space to make room.' : 'Delete a space to make room.';
+        throw new HttpError(403, `Your ${owner.plan_name} plan allows ${owner.max_spaces} spaces. ${room}`);
       }
       const [result] = await conn.query('INSERT INTO spaces SET ?', [{ ...values, owner_id: ownerId }]);
       await insertQuestions(conn, result.insertId, questions);
