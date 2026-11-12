@@ -2,8 +2,9 @@
 // have accounts. Styled with the space's theme, brand colour, and logo. The server validates
 // everything; the browser only gives early feedback.
 import { useEffect, useId, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { api } from '../lib/api.js';
+import PublicShell from '../public/PublicShell.jsx';
 import { themeVars } from '../public/publicTheme.js';
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
@@ -156,16 +157,6 @@ const emptyForm = () => ({
   photo: null, consentPublic: false, consentSocial: false,
 });
 
-function Shell({ vars, children }) {
-  return (
-    <main style={vars} className="min-h-screen bg-[var(--page)] px-4 py-10 text-[var(--text)] sm:py-16">
-      <div className="mx-auto w-full max-w-2xl">{children}</div>
-      <p className="mt-10 text-center text-xs text-[var(--muted)]">
-        Collected with <Link to="/" className="underline underline-offset-2 hover:text-[var(--text)]">Testimonial MVP</Link>
-      </p>
-    </main>
-  );
-}
 
 export default function PublicSpacePage() {
   const { slug } = useParams();
@@ -197,26 +188,26 @@ export default function PublicSpacePage() {
   const vars = themeVars(space?.themeCode, space?.brandColor);
 
   if (load.status === 'loading') {
-    return <Shell vars={vars}><p role="status" className="text-center text-[var(--muted)]">Loading…</p></Shell>;
+    return <PublicShell vars={vars}><p role="status" className="text-center text-[var(--muted)]">Loading…</p></PublicShell>;
   }
   if (load.status === 'missing') {
     return (
-      <Shell vars={vars}>
+      <PublicShell vars={vars}>
         <div className="rounded-2xl bg-[var(--card)] p-10 text-center shadow-sm ring-1 ring-[var(--border)]">
           <h1 className="text-2xl font-semibold">This page doesn&apos;t exist</h1>
           <p className="mt-2 text-[var(--muted)]">Check the link you were given — it may have changed.</p>
         </div>
-      </Shell>
+      </PublicShell>
     );
   }
   if (load.status === 'error') {
     return (
-      <Shell vars={vars}>
+      <PublicShell vars={vars}>
         <div role="alert" className="rounded-2xl bg-[var(--card)] p-10 text-center shadow-sm ring-1 ring-[var(--border)]">
           <h1 className="text-xl font-semibold">We could not load this page</h1>
           <p className="mt-2 text-[var(--muted)]">{load.error}</p>
         </div>
-      </Shell>
+      </PublicShell>
     );
   }
 
@@ -274,7 +265,7 @@ export default function PublicSpacePage() {
 
   if (thankYou) {
     return (
-      <Shell vars={vars}>
+      <PublicShell vars={vars}>
         {header}
         <section className="mt-8 rounded-2xl bg-[var(--card)] p-8 text-center shadow-sm ring-1 ring-[var(--border)] sm:p-12">
           <span aria-hidden="true" className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--brand)] text-2xl text-[var(--on-brand)]">✓</span>
@@ -285,12 +276,12 @@ export default function PublicSpacePage() {
             Send another testimonial
           </button>
         </section>
-      </Shell>
+      </PublicShell>
     );
   }
 
   return (
-    <Shell vars={vars}>
+    <PublicShell vars={vars}>
       {header}
       <form onSubmit={submit} noValidate className="mt-8 space-y-6 rounded-2xl bg-[var(--card)] p-6 shadow-sm ring-1 ring-[var(--border)] sm:p-10">
         <p className="whitespace-pre-line text-xl font-semibold">{space.prompt}</p>
@@ -351,6 +342,6 @@ export default function PublicSpacePage() {
         </button>
         <p className="text-center text-xs text-[var(--muted)]">Your email is only shared with the owner of this page.</p>
       </form>
-    </Shell>
+    </PublicShell>
   );
 }

@@ -1,9 +1,11 @@
-// Owner inbox /spaces/:id/inbox (FR-07; plan.md E28–E30). Read-only in M3: moderation actions
-// (edit, hide, favourite, wall, delete) arrive in M4. Locked testimonials appear only as a count.
-import { useEffect, useState } from 'react';
+// Owner inbox /spaces/:id/inbox (FR-07, FR-08; plan.md E28–E30, E47). Moderation actions (edit,
+// hide, favourite, wall, delete) live in the detail panel. Locked testimonials appear only as a count.
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import Breadcrumbs, { SPACES_CRUMB } from '../components/Breadcrumbs.jsx';
 import { Alert, CopyButton, publicSpaceUrl } from '../components/ui.jsx';
+import DeleteTestimonialDialog from '../inbox/DeleteTestimonialDialog.jsx';
+import EditTestimonialForm from '../inbox/EditTestimonialForm.jsx';
 import { api } from '../lib/api.js';
 
 const FILTERS = [
@@ -54,8 +56,78 @@ function Badges({ t }) {
   );
 }
 
-function Detail({ spaceId, testimonialId }) {
+/** Why "Add to wall" is unavailable (E42, E47), or null when it is allowed. */
+function wallBlockedReason(t) {
+  if (!t.consentPublic) return 'The customer did not agree to public display.';
+  if (t.isHidden) return 'Unhide it first to add it to the wall.';
+  return null;
+}
+
+const actionClass = 'inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium ring-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50';
+
+/** Moderation buttons (E41–E47). Each action saves at once and returns the updated testimonial. */
+function Actions({ t, busy, onFlag, onEdit, onDelete }) {
+  const wallReason = wallBlockedReason(t);
+  return (
+    <div className="mt-5">
+      <div role="group" aria-label="Moderation actions" className="flex flex-wrap gap-2">
+        <button type="button" disabled={busy} aria-pressed={t.isFavorite} onClick={() => onFlag({ favorite: !t.isFavorite })}
+          className={`${actionClass} ${t.isFavorite ? 'bg-amber-50 text-amber-900 ring-amber-300' : 'bg-white text-slate-800 ring-slate-300 hover:bg-slate-50'}`}>
+          {t.isFavorite ? '★ Favourite' : '☆ Favourite'}
+        </button>
+        <button type="button" disabled={busy} onClick={() => onFlag({ hidden: !t.isHidden })}
+          className={`${actionClass} bg-white text-slate-800 ring-slate-300 hover:bg-slate-50`}>
+          {t.isHidden ? 'Unhide' : 'Hide'}
+        </button>
+        {t.onWall ? (
+          <button type="button" disabled={busy} onClick={() => onFlag({ onWall: false })}
+            className={`${actionClass} bg-emerald-50 text-emerald-900 ring-emerald-300 hover:bg-emerald-100`}>
+            Remove from wall
+          </button>
+        ) : (
+          <button type="button" disabled={busy || Boolean(wallReason)} aria-describedby={wallReason ? 'wall-reason' : undefined}
+            onClick={() => onFlag({ onWall: true })}
+            className={`${actionClass} bg-white text-slate-800 ring-slate-300 hover:bg-slate-50`}>
+            Add to wall
+          </button>
+        )}
+        <button type="button" disabled={busy} onClick={onEdit} className={`${actionClass} bg-white text-slate-800 ring-slate-300 hover:bg-slate-50`}>
+          Edit
+        </button>
+        <button type="button" disabled={busy} onClick={onDelete} className={`${actionClass} bg-white text-red-700 ring-red-200 hover:bg-red-50`}>
+          Delete
+        </button>
+      </div>
+      {!t.onWall && wallReason && <p id="wall-reason" className="mt-2 text-sm text-slate-600">Can&apos;t add to the wall: {wallReason}</p>}
+      {t.isHidden && <p className="mt-2 text-sm text-slate-600">Hidden testimonials are never shown publicly. They still count toward your plan limit.</p>}
+    </div>
+  );
+}
+
+function actionError(error) {
+  if (error.status === 404) return 'This testimonial no longer exists. Reload the inbox.';
+  return error.message;
+}
+
+function Detail({ spaceId, testimonialId, onChanged, onDeleted }) {
   const [state, setState] = useState({ status: 'loading' });
+  const [mode, setMode] = useState('view'); // 'view' | 'edit'
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
+  const headingRef = useRef(null);
+  const returnFocus = useRef(false);
+
+  // After the edit form closes (save or cancel), put keyboard focus back on the testimonial
+  // instead of losing it to <body> (review-react-ui finding).
+  useEffect(() => {
+    if (mode === 'view' && returnFocus.current) {
+      returnFocus.current = false;
+      headingRef.current?.focus();
+    }
+  }, [mode]);
+  const closeEdit = () => { returnFocus.current = true; setMode('view'); };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -72,19 +144,71 @@ function Detail({ spaceId, testimonialId }) {
   if (state.status === 'error') return <div className="p-6"><Alert>{state.message}</Alert></div>;
 
   const { t } = state;
+
+  function updated(testimonial) {
+    setState({ status: 'ready', t: testimonial });
+    onChanged();
+  }
+
+  async function flag(patch) {
+    setBusy(true);
+    setError('');
+    try {
+      const data = await api(`/spaces/${spaceId}/testimonials/${t.id}`, { method: 'PATCH', body: patch });
+      updated(data.testimonial);
+    } catch (err) {
+      setError(actionError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (mode === 'edit') {
+    return (
+      <div className="p-6">
+        <EditTestimonialForm spaceId={spaceId} testimonial={t} onCancel={closeEdit}
+          onSaved={(testimonial) => { closeEdit(); updated(testimonial); }} />
+      </div>
+    );
+  }
+
   const who = [t.jobTitle, t.company].filter(Boolean).join(', ');
   return (
     <article className="p-6" aria-labelledby="detail-name">
       <div className="flex items-start gap-4">
         <Avatar name={t.name} photoUrl={t.photoUrl} size="h-16 w-16" />
         <div className="min-w-0">
-          <h2 id="detail-name" className="text-xl font-semibold text-slate-900">{t.name}</h2>
+          <h2 id="detail-name" ref={headingRef} tabIndex={-1} className="text-xl font-semibold text-slate-900 focus:outline-none">{t.name}</h2>
           {who && <p className="text-slate-600">{who}</p>}
           <div className="mt-1"><Stars rating={t.rating} /></div>
         </div>
       </div>
       <div className="mt-4"><Badges t={{ ...t, edited: Boolean(t.editedAt) }} /></div>
+      <Actions t={t} busy={busy} onFlag={flag} onEdit={() => { setError(''); setMode('edit'); }} onDelete={() => setDeleting(true)} />
+      {error && <div className="mt-3"><Alert>{error}</Alert></div>}
       <blockquote className="mt-5 whitespace-pre-line rounded-xl bg-slate-50 p-4 text-[15px] leading-relaxed text-slate-800">{t.body}</blockquote>
+      {t.editedAt && (
+        <div className="mt-2 text-sm text-slate-600">
+          Edited {formatDate(t.editedAt)}
+          {t.originalBody !== null && (
+            <>
+              {' · '}
+              <button type="button" aria-expanded={showOriginal} aria-controls="original-text" onClick={() => setShowOriginal((v) => !v)}
+                className="text-indigo-700 underline">
+                {showOriginal ? 'Hide original text' : 'Show original text'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+      {showOriginal && t.originalBody !== null && (
+        <blockquote id="original-text" className="mt-2 whitespace-pre-line rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-700">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Customer&apos;s original text</span>
+          {t.originalBody}
+        </blockquote>
+      )}
+      <DeleteTestimonialDialog spaceId={spaceId} testimonial={t} open={deleting} onClose={() => setDeleting(false)}
+        onDeleted={() => { setDeleting(false); onDeleted(t.id); }} />
 
       {t.answers.length > 0 && (
         <section className="mt-6">
@@ -118,7 +242,6 @@ function Detail({ spaceId, testimonialId }) {
           <dd className="text-slate-900">{formatDate(t.createdAt)}</dd>
         </dl>
       </section>
-      <p className="mt-6 text-sm text-slate-500">Editing, hiding, favouriting, and publishing to the Wall of Love are coming next.</p>
     </article>
   );
 }
@@ -135,7 +258,8 @@ function Inbox({ id }) {
   const q = useDebounced(search.trim(), 300);
   const [state, setState] = useState({ status: 'loading', data: null, error: null });
   const [selectedId, setSelectedId] = useState(null);
-  const [attempt, setAttempt] = useState(0); // bumped by "Try again"
+  const [attempt, setAttempt] = useState(0); // bumped by "Try again" and after each moderation action
+  const reload = () => setAttempt((n) => n + 1);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -194,6 +318,9 @@ function Inbox({ id }) {
         <div className="flex flex-wrap gap-2">
           <a href={`/s/${space.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
             Open public page ↗
+          </a>
+          <a href={`/s/${space.slug}/wall`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
+            View Wall of Love ↗
           </a>
           <CopyButton text={publicSpaceUrl(space.slug)} />
         </div>
@@ -264,7 +391,10 @@ function Inbox({ id }) {
             ))}
           </ul>
           <div className="rounded-xl bg-white shadow-sm ring-1 ring-slate-200 lg:sticky lg:top-6 lg:self-start">
-            {selected ? <Detail spaceId={id} testimonialId={selected} /> : null}
+            {selected ? (
+              <Detail key={selected} spaceId={id} testimonialId={selected} onChanged={reload}
+                onDeleted={(deletedId) => { if (deletedId === selectedId) setSelectedId(null); reload(); }} />
+            ) : null}
           </div>
         </div>
       )}

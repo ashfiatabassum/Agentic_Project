@@ -48,6 +48,10 @@ export default function SpaceCreatedPage() {
           <a href={`/s/${space.slug}`} target="_blank" rel="noopener noreferrer" className="font-medium text-indigo-700 underline">
             Open the public page ↗
           </a>
+          {' · '}
+          <a href={`/s/${space.slug}/wall`} target="_blank" rel="noopener noreferrer" className="font-medium text-indigo-700 underline">
+            View Wall of Love ↗
+          </a>
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link to={`/spaces/${space.id}/edit`} className="rounded-lg px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
