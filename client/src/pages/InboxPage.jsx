@@ -2,6 +2,7 @@
 // (edit, hide, favourite, wall, delete) arrive in M4. Locked testimonials appear only as a count.
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import Breadcrumbs, { SPACES_CRUMB } from '../components/Breadcrumbs.jsx';
 import { Alert, CopyButton, publicSpaceUrl } from '../components/ui.jsx';
 import { api } from '../lib/api.js';
 
@@ -150,10 +151,18 @@ function Inbox({ id }) {
     return () => controller.abort();
   }, [id, filter, q, attempt]);
 
-  if (state.status === 'loading' && !state.data) return <p role="status" className="text-slate-500">Loading inbox…</p>;
+  if (state.status === 'loading' && !state.data) {
+    return (
+      <div>
+        <Breadcrumbs items={[SPACES_CRUMB, { label: 'Inbox' }]} />
+        <p role="status" className="text-slate-500">Loading inbox…</p>
+      </div>
+    );
+  }
   if (state.status === 'error') {
     return (
       <div className="space-y-4">
+        <Breadcrumbs items={[SPACES_CRUMB, { label: 'Inbox' }]} />
         <Alert>{state.error.status === 404 ? 'This space does not exist or is not yours.' : state.error.message}</Alert>
         <div className="flex gap-4">
           {state.error.status !== 404 && (
@@ -172,8 +181,9 @@ function Inbox({ id }) {
 
   return (
     <div>
-      <p className="text-sm"><Link to="/dashboard" className="text-indigo-700 hover:underline">← Your spaces</Link></p>
-      <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+      {/* A space's crumb always leads to its inbox; here that is this page, so it is plain text. */}
+      <Breadcrumbs items={[SPACES_CRUMB, { label: space.title }, { label: 'Inbox' }]} />
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">{space.title} — inbox</h1>
           <p className="mt-1 text-sm text-slate-600">

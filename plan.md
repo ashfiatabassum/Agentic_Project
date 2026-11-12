@@ -227,6 +227,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 | E35 | Second rate limit | Besides E25 (5 per IP per space per 10 min, given back for invalid/unknown requests), **every** public submit attempt from an IP counts toward **30 per 10 minutes**, never given back, so invalid uploads cannot be repeated without limit. |
 | E36 | E21 as implemented | The public read does **not** include the thank-you message; it is returned by the submit response (only needed after submitting). Questions are returned in display order (array order) as `{ id, text }`; `slug` is included. |
 | E37 | Counts and wording | Dashboard and inbox both show **visible** testimonials plus "· N locked" (E31 revised). Thank-you heading "Testimonial sent" (the default message already starts with "Thank you!"); "Send another testimonial" is a button. Optional ratings have a "Clear rating" button. |
+| E38 | Breadcrumbs (requested by the developer) | Every owner page below the dashboard shows a breadcrumb trail: "Your spaces › New space", "Your spaces › {space} › Edit / Created / Inbox". Accessible pattern (`nav aria-label="Breadcrumb"`, current page `aria-current="page"`). A space's crumb always links to its inbox (plain text on the inbox itself). Not on public or login pages; the browser Back button keeps working. Replaces the scattered "Back to dashboard" / "← Your spaces" links. The "space created" page now links to the public page and the inbox (its "coming in the next milestone" note was outdated). |
 
 ### Tasks
 
