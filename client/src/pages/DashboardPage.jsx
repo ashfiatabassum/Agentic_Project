@@ -35,6 +35,10 @@ function SpaceCard({ space, maxVisible }) {
         <Link to={`/spaces/${space.id}/edit`} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
           Edit<span className="sr-only"> {space.title}</span>
         </Link>
+        {/* M5 (E62/E76): the embed builder, linked here once M6's dashboard was merged. */}
+        <Link to={`/spaces/${space.id}/embed`} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
+          Embed<span className="sr-only"> {space.title} on your site</span>
+        </Link>
         <CopyButton text={url} />
       </div>
     </li>

@@ -1,7 +1,7 @@
 # Project status and next handoff
 
 **Updated:** 12 November 2026
-**Phase:** M0–M4 and M6 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`; M3 merged by [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2), `76a39c8`). M4 merged by [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) (`d0149db`). M5 (embed) in progress in the second window (worktree `C:Agentic_Project-m5`, `feature/m5-embed`). M6 (dashboard) merged by [PR #4](https://github.com/ashfiatabassum/Agentic_Project/pull/4) (`139d025`), the first of the pair. **M5 merges second:** it must merge `main` into `feature/m5-embed`, resolve conflicts, re-run the tests in a test turn, then open its PR; afterwards, run an integration check on `main` (E53).
+**Phase:** M0–M4 and M6 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`; M3 merged by [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2), `76a39c8`). M4 merged by [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) (`d0149db`). M5 (embed) merged second by [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5) (`393c4bd`), built in the second window (worktree `C:\Agentic_Project-m5`). M6 (dashboard) merged by [PR #4](https://github.com/ashfiatabassum/Agentic_Project/pull/4) (`139d025`), the first of the pair. Next: integration check on `main` (E53), then M7 (billing demo).
 
 ## Decisions made
 
@@ -37,6 +37,7 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 3. ✅ Developer checked M4 by hand and confirmed E54 (12 November 2026). [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) merged (`d0149db`; 85/85 tests and build OK on `main`). Branch `feature/m4-moderation-wall` kept for now; delete it later with the M2/M3 branches.
 6. After M4 merges: M5 (embed) and M6 (dashboard) in parallel sessions per plan.md E53.
 7. M5 (session B): ✅ developer reviewed M5, confirmed E73–E76 and approved the commits (12 November 2026). `main` (with M6) merged into the branch (`3ebf40f`): `npm test` 108/108, client tests 5/5, build OK. Next: push, PR and merge (with the developer's OK) (the branch that merges second merges `main` first). After M6 merges, add the dashboard link to the builder.
+8. ✅ M5 merged by [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5) (`393c4bd`, second of the pair); dashboard "Embed" link added on `feature/m5-dashboard-embed-link`. Next: integration check on `main` (tests + embed and dashboard together in the browser). Branches `feature/m5-embed` and `feature/m6-dashboard-stats` kept for now; delete later with the others.
 4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
 
@@ -49,7 +50,7 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 | Spaces, fields, themes, logo | Yes (PRD §11) | Yes | Yes | M2 settings; M3 public display |
 | Public form and consent | Yes | Yes | Yes | M3; browser + 26 tests |
 | Inbox and moderation | Yes | Yes | Yes | M3 + M4 merged |
-| Wall and embed | Yes | Wall yes; embed on branch | Wall yes; embed on branch | Embed: M5 on `feature/m5-embed` (session B), not merged |
+| Wall and embed | Yes | Yes | Yes | Wall M4; embed M5 (session B, [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5)) |
 | Dashboard and quotas | Yes | Partly | Limits yes; stats no | Space limit (M2) and accept-but-lock testimonial limits + hard cap (M3); stats M6 |
 | Demo billing | Yes | No | No | |
 
