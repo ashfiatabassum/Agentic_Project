@@ -2,6 +2,7 @@
 // `npm test` resets and migrates that database first (pretest script).
 import mysql from 'mysql2/promise';
 import { config } from '../../src/config.js';
+import { SET_UTC } from '../../src/db.js';
 
 export const TEST_DATABASE = 'testimonial_mvp_test';
 
@@ -11,9 +12,11 @@ export function assertTestDatabase() {
   }
 }
 
-export function connect() {
+export async function connect() {
   assertTestDatabase();
-  return mysql.createConnection({ ...config.db, charset: 'utf8mb4', timezone: 'Z' });
+  const conn = await mysql.createConnection({ ...config.db, charset: 'utf8mb4', timezone: 'Z' });
+  await conn.query(SET_UTC); // same UTC session as the app pool (src/db.js)
+  return conn;
 }
 
 let counter = 0;

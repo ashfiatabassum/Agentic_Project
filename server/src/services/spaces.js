@@ -157,7 +157,13 @@ export async function listSpaces(ownerId) {
         createdAt: s.created_at,
       };
     }),
-    usage: { plan: plan.code, planName: plan.name, spacesUsed: spaces.length, spacesMax: plan.max_spaces },
+    usage: {
+      plan: plan.code,
+      planName: plan.name,
+      spacesUsed: spaces.length,
+      spacesMax: plan.max_spaces,
+      maxVisiblePerSpace: plan.max_testimonials_per_space, // M6 E82: "87 of 100 visible" on each card
+    },
   };
 }
 
