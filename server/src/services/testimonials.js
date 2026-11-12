@@ -5,8 +5,9 @@
 // Owner functions are scoped by owner_id; another owner's space is "not found" (E8).
 import { getPool, withTransaction } from '../db.js';
 import { HttpError, notFound, validationError } from '../lib/http.js';
-import { removeUpload, uploadUrl } from '../lib/uploads.js';
+import { detectImageType, removeUpload, saveImage, uploadUrl } from '../lib/uploads.js';
 import { charLength, isPlainObject, Validator } from '../lib/validate.js';
+import { slugProblem } from './spaces.js';
 
 /** Saved testimonials per space, whatever the plan (data-model.md hard cap = Paid limit). */
 export const HARD_CAP = 1000;
@@ -24,7 +25,8 @@ const OPTIONAL_TEXT_FIELDS = [
 // ---------------------------------------------------------------- public page (E21)
 
 async function loadPublicSpace(slug, conn = getPool()) {
-  if (typeof slug !== 'string' || slug.length > 60) return null;
+  // E34: only well-formed slugs reach the database (padded or non-ASCII values are "not found").
+  if (slugProblem(slug)) return null;
   const [[space]] = await conn.execute(
     `SELECT id, slug, title, subtitle, prompt, thank_you_message, theme_code, brand_color, logo_path,
             job_title_mode, company_mode, social_link_mode, photo_mode, rating_mode
@@ -131,7 +133,7 @@ export function parseSubmission(space, data, { hasPhoto }) {
     const seen = new Set();
     for (const a of rawAnswers) {
       if (!isPlainObject(a) || !byId.has(a.questionId) || seen.has(a.questionId)) {
-        v.error('answers', 'This form changed while you were filling it in. Reload the page and try again.');
+        v.error('answers', FORM_CHANGED);
         break;
       }
       seen.add(a.questionId);
@@ -148,19 +150,34 @@ export function parseSubmission(space, data, { hasPhoto }) {
   return { values, answers };
 }
 
-/**
- * Saves a testimonial (E24). The photo (already type-checked and saved by the caller) is
- * deleted again if anything fails. Inside one transaction the space row is locked and the
- * saved testimonials counted, so concurrent submissions can never exceed HARD_CAP. Past the
- * plan limit the testimonial is still saved; it is "locked" by its rank (calculated, not stored).
- */
-export async function submitTestimonial(slug, { data, photoPath = null }) {
-  try {
-    const space = await loadPublicSpace(slug);
-    if (!space) throw notFound();
-    const { values, answers } = parseSubmission(space, data, { hasPhoto: Boolean(photoPath) });
-    if (space.photo_mode !== 'off') values.photo_path = photoPath;
+const FORM_CHANGED = 'This form changed while you were filling it in. Reload the page and try again.';
 
+/**
+ * Saves a testimonial (E24, order hardened by E34). Order: find the space → validate the data →
+ * only then, if the space collects photos, check the photo's type and save it (file I/O stays
+ * outside the transaction) → transaction: lock the space row, count, enforce HARD_CAP, insert.
+ * A photo sent to a space with photos off is ignored without being checked or written.
+ * The saved file is deleted again if anything fails. Past the plan limit the testimonial is
+ * still saved; it is "locked" by its rank (calculated, not stored).
+ *
+ * photo: the uploaded image bytes (Buffer) or null.
+ */
+export async function submitTestimonial(slug, { data, photo = null }) {
+  const space = await loadPublicSpace(slug);
+  if (!space) throw notFound();
+  const collectsPhotos = space.photo_mode !== 'off';
+  const usePhoto = collectsPhotos && Boolean(photo);
+  const { values, answers } = parseSubmission(space, data, { hasPhoto: usePhoto });
+
+  let photoPath = null;
+  if (usePhoto) {
+    const ext = detectImageType(photo);
+    if (!ext) throw validationError({ photo: 'The photo must be a JPEG, PNG, or WebP image' });
+    photoPath = await saveImage(photo, 'photos', ext);
+  }
+  values.photo_path = photoPath;
+
+  try {
     await withTransaction(async (conn) => {
       const [[locked]] = await conn.execute('SELECT id FROM spaces WHERE id = ? FOR UPDATE', [space.id]);
       if (!locked) throw notFound(); // deleted in the meantime
@@ -171,14 +188,13 @@ export async function submitTestimonial(slug, { data, photoPath = null }) {
         await conn.query('INSERT INTO testimonial_answers SET ?', [{ ...a, testimonial_id: result.insertId }]);
       }
     });
-
-    // Keep the stored photo only when the space actually collects photos.
-    if (photoPath && space.photo_mode === 'off') await removeUpload(photoPath);
-    return { thankYouMessage: space.thank_you_message || DEFAULT_THANK_YOU };
   } catch (error) {
     await removeUpload(photoPath);
+    // A question removed by the owner a moment ago (E4) fails the answer's foreign key.
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') throw validationError({ answers: FORM_CHANGED });
     throw error;
   }
+  return { thankYouMessage: space.thank_you_message || DEFAULT_THANK_YOU };
 }
 
 // ---------------------------------------------------------------- owner inbox (E28–E30)
@@ -292,7 +308,12 @@ export async function getTestimonial(ownerId, spaceId, testimonialId) {
   if (Number(ranked.rn) > space.max_visible) {
     throw new HttpError(403, `This testimonial is locked on the ${space.plan_name} plan. Upgrade to see it.`, undefined, { locked: true });
   }
-  const [[row]] = await pool.execute('SELECT * FROM testimonials WHERE id = ? AND space_id = ?', [testimonialId, spaceId]);
+  const [[row]] = await pool.execute(
+    `SELECT id, name, email, job_title, company, social_link, rating, body, original_body, photo_path,
+            consent_public, consent_social, is_hidden, is_favorite, on_wall, edited_at, created_at
+       FROM testimonials WHERE id = ? AND space_id = ?`,
+    [testimonialId, spaceId],
+  );
   if (!row) throw notFound(); // deleted in the meantime
   const [answers] = await pool.execute(
     'SELECT question_snapshot, answer_text FROM testimonial_answers WHERE testimonial_id = ? ORDER BY position, id',

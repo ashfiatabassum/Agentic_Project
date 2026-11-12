@@ -22,6 +22,8 @@ export function createApp({ rateLimits = {} } = {}) {
     register: createRateLimiter({ windowMs: 60 * 60 * 1000, max: 5, ...rateLimits.register }),
     // E25: public testimonial submissions per IP per space.
     submit: createRateLimiter({ windowMs: 10 * 60 * 1000, max: 5, ...rateLimits.submit }),
+    // E35: all public submit attempts per IP (valid or not), never given back.
+    submitAttempts: createRateLimiter({ windowMs: 10 * 60 * 1000, max: 30, ...rateLimits.submitAttempts }),
   };
 
   app.disable('x-powered-by');

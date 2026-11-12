@@ -14,7 +14,7 @@ let uploadsDir;
 before(async () => {
   uploadsDir = await mkdtemp(path.join(os.tmpdir(), 'testimonial-uploads-'));
   process.env.UPLOADS_DIR = uploadsDir;
-  app = await startServer({ rateLimits: { register: { max: 1000 }, submit: { max: 1000 } } });
+  app = await startServer({ rateLimits: { register: { max: 1000 }, submit: { max: 1000 }, submitAttempts: { max: 100000 } } });
 });
 after(async () => {
   await app.close();
@@ -311,4 +311,121 @@ test('owner isolation: another owner gets 404 on the inbox and on a testimonial'
   assert.equal((await b.client.get(`/api/spaces/${a.space.id}/testimonials`)).status, 404);
   assert.equal((await b.client.get(`/api/spaces/${a.space.id}/testimonials/${row.id}`)).status, 404);
   assert.equal((await customer().get(`/api/spaces/${a.space.id}/testimonials`)).status, 401);
+});
+
+// ---------------------------------------------------------------- review fixes (E34–E35) and coverage gaps
+
+test('E34: padded, uppercase, and non-ASCII slugs are 404 (no 500, no rate-limit bypass)', async () => {
+  const { space } = await ownerWithSpace();
+  for (const slug of [`${space.slug}%20`, `${space.slug}%20%20%20`, space.slug.toUpperCase(), '%C3%A9t%C3%A9', '%F0%9F%98%80']) {
+    assert.equal((await customer().get(`/api/public/spaces/${slug}`)).status, 404, `GET ${slug}`);
+    assert.equal((await submit(customer(), slug, goodSubmission())).status, 404, `POST ${slug}`);
+  }
+});
+
+test('E35: invalid attempts are capped per IP (30 / 10 min) even though they do not use the per-space allowance', async () => {
+  const limited = await startServer({ rateLimits: { register: { max: 1000 } } }); // default limits
+  try {
+    const owner = await signedInOwner(limited.baseUrl);
+    const { body } = await owner.client.post('/api/spaces', validSpace());
+    const visitor = new Client(limited.baseUrl);
+    const statuses = [];
+    for (let i = 0; i < 31; i += 1) statuses.push((await submit(visitor, body.space.slug, { name: '' }, { photo: PNG })).status);
+    assert.deepEqual([...new Set(statuses.slice(0, 30))], [400], 'the first 30 invalid attempts are rejected as invalid');
+    assert.equal(statuses[30], 429, 'the 31st attempt is rate limited');
+  } finally {
+    await limited.close();
+  }
+});
+
+test('invalid data with a valid photo writes no file at all (validation happens before saving)', async () => {
+  const { space } = await ownerWithSpace({ fields: { jobTitle: 'off', company: 'off', socialLink: 'off', photo: 'optional', rating: 'off' } });
+  const before = await photoFiles();
+  const res = await submit(customer(), space.slug, { name: '', email: 'x@example.com', body: 'Hi' }, { photo: PNG });
+  assert.equal(res.status, 400);
+  assert.deepEqual(await photoFiles(), before);
+});
+
+test('photo field off: even a non-image "photo" is ignored and the testimonial is saved', async () => {
+  const { space } = await ownerWithSpace(); // photo: off
+  const res = await submit(customer(), space.slug, goodSubmission(), { photo: Buffer.from('not an image at all, just text'.padEnd(64)) });
+  assert.equal(res.status, 201, JSON.stringify(res.body));
+});
+
+test('the per-space limit is separate for each space', async () => {
+  const limited = await startServer({ rateLimits: { register: { max: 1000 } } });
+  try {
+    const owner = await signedInOwner(limited.baseUrl);
+    const one = (await owner.client.post('/api/spaces', validSpace())).body.space;
+    const two = (await owner.client.post('/api/spaces', validSpace())).body.space;
+    const visitor = new Client(limited.baseUrl);
+    for (let i = 0; i < 5; i += 1) await submit(visitor, one.slug, goodSubmission());
+    assert.equal((await submit(visitor, one.slug, goodSubmission())).status, 429);
+    assert.equal((await submit(visitor, two.slug, goodSubmission())).status, 201, 'another space still accepts');
+  } finally {
+    await limited.close();
+  }
+});
+
+test('an oversized upload gives back the per-space allowance', async () => {
+  const limited = await startServer({ rateLimits: { register: { max: 1000 } } });
+  try {
+    const owner = await signedInOwner(limited.baseUrl);
+    const { body } = await owner.client.post('/api/spaces', validSpace({ fields: { jobTitle: 'off', company: 'off', socialLink: 'off', photo: 'optional', rating: 'off' } }));
+    const visitor = new Client(limited.baseUrl);
+    for (let i = 0; i < 5; i += 1) {
+      assert.equal((await submit(visitor, body.space.slug, goodSubmission({ rating: undefined }), { photo: Buffer.concat([PNG, Buffer.alloc(2 * 1024 * 1024)]) })).status, 400);
+    }
+    assert.equal((await submit(visitor, body.space.slug, goodSubmission({ rating: undefined }))).status, 201);
+  } finally {
+    await limited.close();
+  }
+});
+
+test('answers: deactivated, foreign, and duplicate question ids are rejected; long answers too', async () => {
+  const { space, client: owner } = await ownerWithSpace();
+  const other = await ownerWithSpace();
+  const [q1, q2] = space.questions;
+  // Answer q1 once so that removing it deactivates it (D4) instead of deleting it.
+  await submit(customer(), space.slug, goodSubmission({ answers: [{ questionId: q1.id, text: 'yes' }] }));
+  const updated = await owner.put(`/api/spaces/${space.id}`, validSpace({ slug: space.slug, questions: [{ id: q2.id, text: q2.text }] }));
+  assert.equal(updated.status, 200, JSON.stringify(updated.body));
+
+  const publicSpace = (await customer().get(`/api/public/spaces/${space.slug}`)).body.space;
+  assert.deepEqual(publicSpace.questions.map((q) => q.id), [q2.id], 'inactive questions are not shown publicly');
+
+  for (const answers of [
+    [{ questionId: q1.id, text: 'deactivated' }],
+    [{ questionId: other.space.questions[0].id, text: 'foreign' }],
+    [{ questionId: q2.id, text: 'a' }, { questionId: q2.id, text: 'b' }],
+  ]) {
+    const res = await submit(customer(), space.slug, goodSubmission({ answers }));
+    assert.equal(res.status, 400, JSON.stringify(answers));
+  }
+  const long = await submit(customer(), space.slug, goodSubmission({ answers: [{ questionId: q2.id, text: 'x'.repeat(1001) }] }));
+  assert.equal(long.status, 400);
+  assert.ok(long.body.fields[`answers.${q2.id}`]);
+});
+
+test('optional text fields may be left empty', async () => {
+  const { space } = await ownerWithSpace({ fields: { jobTitle: 'optional', company: 'optional', socialLink: 'optional', photo: 'off', rating: 'optional' } });
+  const res = await submit(customer(), space.slug, goodSubmission({ rating: undefined, jobTitle: '', company: '  ', socialLink: '' }));
+  assert.equal(res.status, 201, JSON.stringify(res.body));
+});
+
+test('owner B with their own space id and owner A\'s testimonial id gets 404', async () => {
+  const a = await ownerWithSpace();
+  await submit(customer(), a.space.slug, goodSubmission());
+  const [[row]] = await getPool().execute('SELECT id FROM testimonials WHERE space_id = ?', [a.space.id]);
+  const b = await ownerWithSpace();
+  assert.equal((await b.client.get(`/api/spaces/${b.space.id}/testimonials/${row.id}`)).status, 404);
+});
+
+test('hidden testimonials count toward the plan limit (hiding does not free capacity)', async () => {
+  const { space, client: owner } = await ownerWithSpace();
+  await fillSpace(space.id, 100);
+  await getPool().execute('UPDATE testimonials SET is_hidden = 1 WHERE space_id = ? LIMIT 50', [space.id]);
+  await submit(customer(), space.slug, goodSubmission());
+  const inbox = await owner.get(`/api/spaces/${space.id}/testimonials`);
+  assert.deepEqual(inbox.body.counts, { visible: 100, locked: 1, total: 101 });
 });
