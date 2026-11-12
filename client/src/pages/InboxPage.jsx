@@ -332,7 +332,7 @@ function Inbox({ id }) {
       {counts.locked > 0 && (
         <div role="status" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
           <strong>{counts.locked} {counts.locked === 1 ? 'testimonial is' : 'testimonials are'} locked</strong> on the {plan.name} plan, which shows {plan.maxVisible} per space.
-          Upgrade to see them — the upgrade option is coming soon. Nothing has been lost: they are saved.
+          Nothing has been lost: they are saved. <Link to="/billing" className="font-medium underline">Upgrade to Paid (demo)</Link> to see them.
         </div>
       )}
 

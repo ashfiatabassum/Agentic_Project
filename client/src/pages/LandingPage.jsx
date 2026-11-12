@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../auth/AuthContext.jsx';
 import Logo from '../components/Logo.jsx';
-import { PLANS } from '../lib/plans.js';
+import { usePlans } from '../lib/plans.js';
 
 // ---------------------------------------------------------------------------------------------
 // Small building blocks
@@ -391,6 +391,7 @@ function WallOfLove() {
 }
 
 function Pricing() {
+  const { status, plans } = usePlans();
   return (
     <section id="pricing" className="scroll-mt-24 bg-white py-24">
       <div className="mx-auto max-w-6xl px-6">
@@ -399,7 +400,9 @@ function Pricing() {
           <h2 className="mt-3 text-4xl font-bold tracking-tight text-slate-900">Start free, upgrade when you grow</h2>
         </div>
         <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-2">
-          {PLANS.map((plan) => {
+          {status === 'loading' && <p role="status" className="text-center text-slate-500 md:col-span-2">Loading prices…</p>}
+          {status === 'error' && <p role="alert" className="text-center text-slate-600 md:col-span-2">Prices could not be loaded. Please refresh the page.</p>}
+          {plans.map((plan) => {
             const featured = plan.code === 'paid';
             return (
               <div key={plan.code} className={`relative flex flex-col rounded-3xl p-8 transition duration-300 motion-safe:hover:-translate-y-1 ${featured ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-xl shadow-indigo-600/20' : 'bg-white ring-1 ring-slate-200 hover:shadow-lg hover:shadow-indigo-900/5'}`}>

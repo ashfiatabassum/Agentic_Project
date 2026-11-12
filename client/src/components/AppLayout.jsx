@@ -1,6 +1,6 @@
 // Private header (E10): app name, owner name, plan badge, Log out.
 import { useState } from 'react';
-import { Outlet } from 'react-router';
+import { Link, Outlet } from 'react-router';
 import { useAuth } from '../auth/AuthContext.jsx';
 import Logo from './Logo.jsx';
 import { Button } from './ui.jsx';
@@ -39,7 +39,9 @@ export default function AppLayout() {
           <Logo to="/dashboard" />
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-700">{user.name}</span>
-            <PlanBadge plan={user.plan} />
+            <Link to="/billing" aria-label={`${user.plan === 'paid' ? 'Paid' : 'Free'} plan — billing`} className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+              <PlanBadge plan={user.plan} />
+            </Link>
             <Button variant="ghost" onClick={handleLogout} disabled={leaving}>
               {leaving ? 'Logging out…' : 'Log out'}
             </Button>
