@@ -61,7 +61,8 @@ There is no separate platform administrator in this scope. “Admin” in the br
 
 | Route concept | Audience | Main content |
 | --- | --- | --- |
-| Sign up / sign in | Owner | Credentials and errors |
+| Landing page `/` | Public | What the product does, interactive feature preview, sample testimonials, Free vs Paid (demo) pricing, sign-up call to action (added 12 Nov 2026, plan.md E19) |
+| Sign up / sign in | Owner | Credentials and errors; two-column desktop layout with larger fields (plan.md E20) |
 | Dashboard | Owner | Statistics, graph, spaces, plan prompt |
 | New/edit space | Owner | Title, subtitle, prompt, questions, fields, theme |
 | Space created | Owner | Public link and next steps |
@@ -158,6 +159,7 @@ Agreed after listing all functions and comparing with Testimonial.to (home, pric
 5. Get the current user on page load
 6. Protect private pages and APIs (redirect to login, then back)
 7. Rate-limit login and sign-up attempts
+8. **(added 12 Nov 2026)** Public landing page at `/` with an interactive feature preview and pricing, leading to sign up; larger two-column sign in / sign up pages (plan.md E19–E20)
 
 ### 2. Spaces (FR-02 – FR-04)
 

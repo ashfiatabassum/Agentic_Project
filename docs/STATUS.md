@@ -23,8 +23,9 @@
 
 Milestones and their tasks live in [`plan.md`](../plan.md).
 
-1. **Developer:** check M2 by hand (`npm run dev`, then sign up at http://localhost:5173/signup) and confirm plan decisions **E14–E18**.
+1. **Developer:** check M2 by hand, including the new landing page at http://localhost:5173/ and the redesigned log in / sign up (plan E19–E20), (`npm run dev`, then sign up at http://localhost:5173/signup) and confirm plan decisions **E14–E18**.
 2. After confirmation: commit in small steps, push the branch, open the PR to `main`, merge, record PR link and merge commit in `verification.md`, delete the branch.
+4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 3. Plan **M3 — public form + inbox** (accept but lock, hard cap, photo upload; move the submit locking pattern from `concurrency.test.js` into a service). Re-check the `answeredQuestions` EXPLAIN with real answers.
 4. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
 

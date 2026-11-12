@@ -149,6 +149,15 @@ Small choices the PRD and E0–E13 did not settle; raised by the `requirements-r
 | E17 | CSRF exceptions | Logout accepts any content type ("always succeeds", Q13; a cross-site logout carries no cookie). Logo upload is multipart and also requires the header `X-Requested-With: fetch`. |
 | E18 | API details | `PUT /api/spaces/:id` replaces all settings (missing `fields`/`questions` = off/none). Brand colour stored uppercase. `GET /api/themes` is public (lookup data). `Cache-Control: no-store` on the API; uploads served with `nosniff`. Client: `/` → `/dashboard`, a 404 page, and a "could not reach the server" screen when `/me` fails for a reason other than 401. |
 
+### Added scope (E19–E20) — requested by the developer, 12 November 2026
+
+The developer asked for an interactive marketing landing page and larger sign in / sign up pages, inspired by testimonial.to's layout (reference screenshot) but with our own name, wording, and a **light + indigo** theme (developer's choice). Not a copy: no logos, images, or text from that site.
+
+| # | Decision | Chosen |
+| --- | --- | --- |
+| E19 | Landing page at `/` (public) | Replaces the `/` → `/dashboard` redirect (E18). Sections: sticky nav (logo mark, Features / Pricing / Wall of Love anchors, Log in, Start for free — or "Go to dashboard" when signed in); hero with one gradient phrase and two calls to action; interactive feature tabs (Collect / Manage / Showcase / Embed) swapping mock previews with synthetic data; floating sample testimonial cards around a mock dashboard window; Free vs Paid pricing (৳0 / ৳999 per month, Paid labelled "Demo — no real payment") from one constants file; footer. Light theme: white / slate-50, slate-900 text, indigo-600 primary, indigo→violet gradient on the hero phrase and main button only. Hover lift on cards; all motion off under `prefers-reduced-motion`. Desktop-first, usable at 1024 px and below. |
+| E20 | Sign in / sign up redesign | Two-column card ~960 px wide on desktop: left brand panel (indigo gradient, headline, one sample testimonial), right form; stacks to one column on narrow screens. Fields 48 px tall with 16 px text, visible labels, placeholder examples, show/hide password toggle, password hint, inline errors, full-width 48 px button with loading state, link to switch pages. All PRD §10 behaviour unchanged. The private header uses the same logo mark and theme. |
+
 ### Tasks
 
 Ticked items are verified on the working tree; commit hashes are added when the developer approves the commits.
@@ -162,7 +171,11 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] Reviews: `review-react-ui` + `vercel-react-best-practices` on the client; `review-mysql-model` + `mysql` on the new queries; subagents `code-reviewer` + `security-reviewer` + `requirements-reviewer` (findings and fixes in verification.md)
 - [x] Browser check with **Playwright MCP**: sign up → dashboard → create space (questions, fields, theme, colour) → created page → edit (logo upload, per E7 only possible once the space exists) → dashboard shows it → log out → private URL redirects to login → log in returns to it; second owner cannot open the first owner's edit URL
 - [x] Docs: verification.md (FR-01–04, FR-12 rows, skill/subagent/hook logs), README status, STATUS, this plan
-- [ ] **Developer manual check**, then commits (one per task where practical)
+- [x] Commit the verified M2 work in four commits (`2a5a281` API, `abf6873` tests, `8bcc6db` client, `9a8eb95` docs) — the original session closed before committing; tests re-run first (42/42) and the build passed
+- [x] E19: landing page at `/` (sections above), plan constants file `client/src/lib/plans.js`, route change, shared logo mark `components/Logo.jsx`
+- [x] E20: redesigned sign in / sign up (two-column 960 px card, 48 px / 16 px fields, show/hide password, loading spinner) and matching private header
+- [x] Verify E19–E20: build OK; server tests 42/42; Playwright MCP at 1440×900 and 1024×768 (no horizontal scroll) — all four feature tabs by mouse and keyboard (Arrow keys, End, wrap-around), sign-up validation errors, password toggle, sign up → dashboard, landing shows "Go to dashboard" when signed in, log out, `/spaces/new` → login `?next` → wrong password "Invalid email or password" → correct login returns to `/spaces/new`; console shows only the expected 400/401 API responses, no JavaScript errors; screenshots in `docs/screenshots/m2-landing-*`, `m2-signup-*`, `m2-login-*`; reviewed with `review-react-ui` (#10: 2 fixed, 1 deferred) and `vercel-react-best-practices` (#11: 2 fixed)
+- [ ] **Developer manual check** of the whole M2 branch
 - [ ] Open a pull request `feature/m2-auth-spaces` → `main` (summary, checks run, known gaps); merge after "Done when" passes; record PR link and merge commit; delete the branch
 
 ### Done when
