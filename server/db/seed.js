@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import mysql from 'mysql2/promise';
 import { config, isDbConfigured } from '../src/config.js';
+import { SET_UTC } from '../src/db.js';
 import { hashPassword } from '../src/lib/password.js';
 
 export const DEMO_OWNER = { name: 'Demo Owner', email: 'demo@example.com', password: 'demo-password' };
@@ -25,6 +26,7 @@ async function seed() {
   if (!isDbConfigured()) throw new Error('Database is not configured: set DB_* values in server/.env');
 
   const conn = await mysql.createConnection({ ...config.db, charset: 'utf8mb4', timezone: 'Z' });
+  await conn.query(SET_UTC); // column defaults (CURRENT_TIMESTAMP) in UTC, see src/db.js
   try {
     const [existing] = await conn.execute('SELECT id FROM users WHERE email = ?', [DEMO_OWNER.email]);
     if (existing.length) {
