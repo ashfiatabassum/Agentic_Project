@@ -102,13 +102,14 @@ function PhotoInput({ file, onChange, required, error, onClientError }) {
           {preview
             ? <img src={preview} alt="Your photo preview" className="h-16 w-16 rounded-full object-cover ring-2 ring-[var(--border)]" />
             : <span aria-hidden="true" className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[var(--border)] text-xs text-[var(--muted)]">Photo</span>}
-          <input ref={inputRef} type="file" accept={PHOTO_TYPES.join(',')} onChange={choose} className="sr-only" {...a11y} />
+          {/* The visible button is the only keyboard stop; the native input stays for the label link. */}
+          <input ref={inputRef} type="file" accept={PHOTO_TYPES.join(',')} onChange={choose} className="sr-only" tabIndex={-1} {...a11y} />
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => inputRef.current?.click()} className="rounded-lg border border-[var(--border)] px-3.5 py-2 text-sm font-semibold text-[var(--text)] hover:bg-[var(--page)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
+            <button type="button" onClick={() => inputRef.current?.click()} aria-describedby={a11y['aria-describedby']} aria-label={file ? 'Change your photo' : 'Choose your photo'} className="rounded-lg border border-[var(--border)] px-3.5 py-2 text-sm font-semibold text-[var(--text)] hover:bg-[var(--page)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
               {file ? 'Change photo' : 'Choose photo'}
             </button>
             {file && (
-              <button type="button" onClick={() => onChange(null)} className="rounded-lg px-3.5 py-2 text-sm font-semibold text-[var(--muted)] hover:text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
+              <button type="button" onClick={() => onChange(null)} aria-label="Remove your photo" className="rounded-lg px-3.5 py-2 text-sm font-semibold text-[var(--muted)] hover:text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
                 Remove
               </button>
             )}
@@ -233,7 +234,8 @@ export default function PublicSpacePage() {
       setErrors(error.fields ?? {});
       setFormError(error.status === 400 ? 'Please check the highlighted fields.' : error.message);
       setPending(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
       return;
     }
     setPending(false);
@@ -283,7 +285,11 @@ export default function PublicSpacePage() {
 
         {space.questions.map((q) => (
           <Input key={q.id} label={q.text} optional multiline rows={3} maxLength={1000} value={form.answers[q.id] ?? ''}
-            onChange={(e) => set({ answers: { ...form.answers, [q.id]: e.target.value } })} error={errors[`answers.${q.id}`]} />
+            onChange={(e) => {
+              const text = e.target.value;
+              // Functional update (vercel-react-best-practices: rerender-functional-setstate).
+              setForm((f) => ({ ...f, answers: { ...f.answers, [q.id]: text } }));
+            }} error={errors[`answers.${q.id}`]} />
         ))}
         {errors.answers && <p role="alert" className="text-sm text-[var(--danger)]">{errors.answers}</p>}
 

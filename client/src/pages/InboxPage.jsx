@@ -215,7 +215,8 @@ export default function InboxPage() {
         <div className={`mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] ${state.status === 'refreshing' ? 'opacity-60' : ''}`} aria-busy={state.status === 'refreshing'}>
           <ul className="max-h-[70vh] divide-y divide-slate-100 overflow-y-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-200" aria-label="Testimonials">
             {testimonials.map((t) => (
-              <li key={t.id}>
+              // Off-screen rows skip layout and paint (vercel-react-best-practices: rendering-content-visibility).
+              <li key={t.id} className="[content-visibility:auto] [contain-intrinsic-size:auto_140px]">
                 <button type="button" onClick={() => setSelectedId(t.id)} aria-current={t.id === selected ? 'true' : undefined}
                   className={`flex w-full items-start gap-3 p-4 text-left hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400 ${t.id === selected ? 'bg-indigo-50/70' : ''}`}>
                   <Avatar name={t.name} photoUrl={t.photoUrl} />
