@@ -138,21 +138,25 @@ export async function listSpaces(ownerId) {
       [ownerId],
     ),
     pool.execute(
-      'SELECT p.code, p.name, p.max_spaces FROM users u JOIN plans p ON p.code = u.plan_code WHERE u.id = ?',
+      'SELECT p.code, p.name, p.max_spaces, p.max_testimonials_per_space FROM users u JOIN plans p ON p.code = u.plan_code WHERE u.id = ?',
       [ownerId],
     ),
   ]);
   return {
-    spaces: spaces.map((s) => ({
-      id: s.id,
-      slug: s.slug,
-      title: s.title,
-      themeCode: s.theme_code,
-      brandColor: s.brand_color,
-      logoUrl: uploadUrl(s.logo_path),
-      testimonialCount: Number(s.testimonial_count),
-      createdAt: s.created_at,
-    })),
+    spaces: spaces.map((s) => {
+      const count = Number(s.testimonial_count);
+      return {
+        id: s.id,
+        slug: s.slug,
+        title: s.title,
+        themeCode: s.theme_code,
+        brandColor: s.brand_color,
+        logoUrl: uploadUrl(s.logo_path),
+        testimonialCount: count,
+        lockedCount: Math.max(0, count - plan.max_testimonials_per_space), // E31 (accept but lock)
+        createdAt: s.created_at,
+      };
+    }),
     usage: { plan: plan.code, planName: plan.name, spacesUsed: spaces.length, spacesMax: plan.max_spaces },
   };
 }

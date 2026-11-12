@@ -2,10 +2,12 @@
 // Throw an HttpError from any route; the central error handler in app.js turns it into JSON.
 
 export class HttpError extends Error {
-  constructor(status, message, fields) {
+  /** extra: additional top-level JSON properties for the client (for example { locked: true }). */
+  constructor(status, message, fields, extra) {
     super(message);
     this.status = status;
     if (fields) this.fields = fields;
+    if (extra) this.extra = extra;
   }
 }
 
