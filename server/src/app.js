@@ -38,8 +38,10 @@ export function createApp({ rateLimits = {} } = {}) {
     setHeaders: (res) => res.set('X-Content-Type-Options', 'nosniff'),
   }));
 
+  // E68: API responses are never meant to be framed (the client pages get their own rule).
   app.use('/api', (req, res, next) => {
     res.set('Cache-Control', 'no-store');
+    res.set('X-Frame-Options', 'DENY');
     next();
   });
   // Multipart is allowed only for the logo upload (owner, plus a custom header) and the public
