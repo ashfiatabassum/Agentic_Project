@@ -45,7 +45,7 @@ This repository currently contains the **requirements and agentic workflow start
    This starts the API on http://localhost:4000 and the client on http://localhost:5173. Open the client URL; `/api` requests are proxied to the API.
 6. **Check:** http://localhost:4000/api/health should return `{"status":"ok","api":"ok","database":"ok"}`.
 
-Other commands: `npm test` (server tests; resets and uses the separate `testimonial_mvp_test` database, never the dev data), `npm run build` (client production build), `npm run dev:server` / `npm run dev:client` (one side only).
+Other commands: `npm test` (server tests; resets and uses the separate `testimonial_mvp_test` database, never the dev data), `npm run test:client` (client unit tests, no database), `npm run build` (client production build), `npm run dev:server` / `npm run dev:client` (one side only).
 
 The public collection link must point to a reachable host when demonstrating from another device. A localhost link works only on the same computer.
 
@@ -58,7 +58,7 @@ The public collection link must point to a reachable host when demonstrating fro
 | Anonymous text submission and thank-you page | Implemented and verified (M3, merged in PR #2) |
 | Inbox moderation and Wall of Love | Inbox merged (M3). Moderation (edit, hide, favourite, wall, delete) and the public wall `/s/:slug/wall` are implemented and verified (M4, merged in PR #3) |
 | Responsive iframe embed | Planned |
-| Dashboard statistics | Planned |
+| Dashboard statistics | Implemented and verified on branch `feature/m6-dashboard-stats` (M6), checked by the developer; not merged yet |
 | Free/Paid quota enforcement | Space limit implemented and verified (M2, concurrency-safe); testimonial limits with accept but lock and the 1,000 hard cap implemented and verified (M3); deleting frees capacity (M4) |
 | Demo upgrade and saved plan state | Planned |
 | Real Stripe checkout and webhooks | Not in this demo scope |

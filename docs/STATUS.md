@@ -1,7 +1,7 @@
 # Project status and next handoff
 
 **Updated:** 12 November 2026
-**Phase:** M0–M4 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`; M3 merged by [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2), `76a39c8`). M4 merged by [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) (`d0149db`). Next: plan M5 (embed) and M6 (dashboard) as parallel sessions (plan.md E53).
+**Phase:** M0–M4 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`; M3 merged by [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2), `76a39c8`). M4 merged by [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) (`d0149db`). M5 (embed) in progress in the second window (worktree `C:Agentic_Project-m5`, `feature/m5-embed`). M6 (dashboard) implemented and verified in this window on `feature/m6-dashboard-stats`; checked by the developer, E92–E93 confirmed, committed on the branch (not pushed yet).
 
 ## Decisions made
 
@@ -21,6 +21,8 @@
 - **M3 public form and inbox** — merged (PR #2, `76a39c8`; 68/68 tests and build OK on `main`). public collection page `/s/:slug` (theme, colour, logo, fields per mode, rating, answers, photo, two unchecked consents, thank-you), submission with accept but lock, the 1,000 hard cap under concurrency, two rate limits; owner inbox (favourites first, filters, search, detail, locked banner); dashboard inbox links and counts. **68/68 tests**, build OK, Playwright journey passed. Reviews: 4 skills + 3 subagents; all findings fixed or recorded as E34–E37.
 
 - **M4 moderation + Wall of Love** — on `feature/m4-moderation-wall` (plan commit `99b2244` on `main`). Owner-only edit, hide, favourite, wall, delete (locked → 403; wall needs public consent and not hidden; deleting frees capacity); public wall `/s/:slug/wall` with only eligible testimonials and no private data. **85/85 tests** (17 new), build OK, Playwright journey passed (`docs/screenshots/m4-*`). Reviews: 4 skills (log #16–19) + 3 subagents (log #7–9); fixes applied, the rest recorded as E54.
+
+- **M6 dashboard statistics** — on `feature/m6-dashboard-stats` (committed on the branch, not pushed). `GET /api/dashboard`: owner-only totals, locked count, a daily graph in the owner's time zone (7/30 days, zero-filled), and recent activity with locked names hidden. Dashboard tiles, usage bars, a hand-made SVG chart with a table view and keyboard, and a Free upgrade card. **Found and fixed E92:** timestamps MySQL filled in were 6 hours ahead (session zone was Bangladesh time). After the review fixes and E93: **99/99 server tests** (final run in a granted test turn) and **5/5 client tests** (`npm run test:client`). Build OK. Dev database reset and reseeded after E92 (developer's choice). Playwright journey passed (`m6-*`). Reviews: dataviz + 3 skill passes (log #20–23), 2 subagents (log #10–11).
 
 ## Next actions
 

@@ -32,6 +32,7 @@ Run from the repository root unless noted. Only list commands that have actually
 - Wipe and re-create the dev database: `npm run db:reset` (refused unless the DB is `testimonial_mvp`/`testimonial_mvp_test` and `NODE_ENV` is not production)
 - Demo data: `npm run seed` (demo owner `demo@example.com` / `demo-password`, 2 spaces; skips if already seeded)
 - Server tests: `npm test` — resets and migrates **`testimonial_mvp_test`** (from `server/.env.test`) first, then runs `server/test/**/*.test.js` one file at a time. Tests refuse to run against any other database. Never point tests at the dev database.
+- Client unit tests (pure helpers, `node:test`, no browser or database): `npm run test:client`
 - Client production build: `npm run build`
 - Health check: `GET http://localhost:4000/api/health` or through the Vite proxy at `http://localhost:5173/api/health`; 200 with `"database":"ok"` when MySQL is reachable
 - New schema change: add a new `server/db/migrations/NNN_description.sql` (one table per file), update `docs/data-model.md` first; never edit an applied migration.
