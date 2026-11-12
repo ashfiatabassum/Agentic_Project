@@ -1,7 +1,7 @@
 # Project status and next handoff
 
 **Updated:** 12 November 2026
-**Phase:** M0–M3 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`; M3 merged by [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2), `76a39c8`). M4 (moderation + Wall of Love) implemented and verified on `feature/m4-moderation-wall`, checked by hand by the developer and E54 confirmed; PR to `main` open, merge waits for the developer.
+**Phase:** M0–M4 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`; M3 merged by [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2), `76a39c8`). M4 merged by [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) (`d0149db`). Next: plan M5 (embed) and M6 (dashboard) as parallel sessions (plan.md E53).
 
 ## Decisions made
 
@@ -28,7 +28,7 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 
 1. ✅ Done: developer checked M2 by hand and confirmed E14–E18; [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) merged (`efe21f0`). Branch `feature/m2-auth-spaces` kept for now; delete it later (`git branch -d feature/m2-auth-spaces` and `git push origin --delete feature/m2-auth-spaces`).
 2. ✅ Done: developer checked M3 by hand and confirmed E34–E38; [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2) merged (`76a39c8`). Branch `feature/m3-public-form-inbox` kept for now; delete it later together with the M2 branch.
-3. ✅ Developer checked M4 by hand and confirmed E54 (12 November 2026). **Now:** PR to `main` is open; merge when the developer says so, then record the merge commit.
+3. ✅ Developer checked M4 by hand and confirmed E54 (12 November 2026). [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) merged (`d0149db`; 85/85 tests and build OK on `main`). Branch `feature/m4-moderation-wall` kept for now; delete it later with the M2/M3 branches.
 6. After M4 merges: M5 (embed) and M6 (dashboard) in parallel sessions per plan.md E53.
 4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
@@ -41,8 +41,8 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 | Authentication | Yes (PRD §10) | Yes | Yes | M2; 13 API tests + browser |
 | Spaces, fields, themes, logo | Yes (PRD §11) | Yes | Yes | M2 settings; M3 public display |
 | Public form and consent | Yes | Yes | Yes | M3; browser + 26 tests |
-| Inbox and moderation | Yes | Yes | Yes (M4 on branch) | M3 inbox merged; M4 actions waiting for review |
-| Wall and embed | Yes | Wall yes (M4 branch); embed no | Wall yes | Embed is M5 |
+| Inbox and moderation | Yes | Yes | Yes | M3 + M4 merged |
+| Wall and embed | Yes | Wall yes; embed no | Wall yes | Embed is M5 |
 | Dashboard and quotas | Yes | Partly | Limits yes; stats no | Space limit (M2) and accept-but-lock testimonial limits + hard cap (M3); stats M6 |
 | Demo billing | Yes | No | No | |
 

@@ -259,11 +259,11 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 ---
 
-## M4 — Moderation and Wall of Love
+## M4 — Moderation and Wall of Love ✅
 
 **Goal:** the owner can edit, hide, favourite, add to or remove from the wall, and delete any **visible** testimonial in their own space's inbox. A public Wall of Love page `/s/:slug/wall` shows only testimonials that are on the wall, not hidden, not locked, and have public consent. It shows no email, consent flags, answers, or other private data.
 **Requirements covered:** FR-08, FR-09; PRD §5 rules (owner-only access, wall eligibility, accept but lock, `edited_at` marker, deleting frees capacity, no private data in public APIs); PRD §11.4 items 5–9 and §11.5.
-**Branch:** `feature/m4-moderation-wall` from `main`, merged by pull request (CLAUDE.md → Git workflow). **Status:** implemented, reviewed, and browser-verified on the branch; checked by hand by the developer and E54 confirmed (12 November 2026). PR to `main` open; merge waits for the developer.
+**Branch:** `feature/m4-moderation-wall` from `main`, merged by pull request (CLAUDE.md → Git workflow). **Status:** implemented, reviewed, and browser-verified on the branch; checked by hand by the developer and E54 confirmed (12 November 2026). Merged by [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3), merge commit `d0149db`.
 **Schema:** no migration. `testimonials` already has `is_hidden`, `is_favorite`, `on_wall`, `original_body`, `edited_at`, and the CHECK `chk_testimonials_wall_eligible` (R4).
 
 ### Decisions (E39–E52) — approved by the developer, 12 November 2026
@@ -309,7 +309,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
   - a second owner gets 404 on the first owner's moderation API
 - [x] Docs: verification.md (FR-08, FR-09 rows; skill, subagent, and issue logs), STATUS, README status, and this plan
 - [x] **Developer manual check** of the M4 branch and E54 confirmed — done by the developer, 12 November 2026
-- [ ] Push, PR to `main`, merge, record the PR and merge commit
+- [x] Push, PR to `main`, merge, record the PR and merge commit — [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3), merge commit `d0149db`; on `main`: 85/85 tests, build OK
 
 ### Done when
 
