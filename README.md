@@ -1,16 +1,10 @@
-# Testimonial MVP — project starter
+# Testimonial MVP
 
-This repository currently contains the **requirements and agentic workflow starter**, not a completed application. The application will use React + Vite + Tailwind CSS for `client/`, Node.js + Express for `server/`, and MySQL. Do not mark a feature complete until it has been implemented and verified.
+A small testimonial-collection app built with Claude Code and an agentic workflow (Module 13 project). A business owner creates a branded collection page; customers leave a written testimonial without an account; the owner moderates it, publishes selected ones on a public **Wall of Love**, embeds that wall on another website, watches activity on a dashboard, and can run a clearly labelled **simulated** upgrade to a Paid plan.
 
-**Stack choice:** the course built this project in PHP/Laravel; the assignment allows a stack with prior experience, so this version uses React + Express + MySQL (JavaScript throughout). See [docs/assignment-brief.md](docs/assignment-brief.md) for the grading and submission brief.
+**Stack:** React 19 + Vite 8 + Tailwind CSS 4 (`client/`), Node.js + Express 5 (`server/`), MySQL 8.0 with parameterized queries. JavaScript throughout. The course built the project in PHP/Laravel; the assignment allows a familiar stack. Grading brief: [docs/assignment-brief.md](docs/assignment-brief.md).
 
-## Start here
-
-1. Compare [docs/PRD.md](docs/PRD.md) with the instructor's **Project Requirements** lesson and record corrections before coding.
-2. Read [CLAUDE.md](CLAUDE.md), [docs/data-model.md](docs/data-model.md), and [docs/STATUS.md](docs/STATUS.md).
-3. Set up the React and Express apps, and replace the local setup section with exact installation, database, environment, and run commands once they work.
-4. Optional: initialize OpenSpec for Claude Code (`openspec init --tools claude`). Do not claim that OpenSpec is initialized until this command succeeds.
-5. Run `/mcp` in Claude Code to confirm the Playwright server; run `/hooks` to confirm the project hook. Project MCP configuration may require approval the first time.
+**Repository documents:** what the app must do — [docs/PRD.md](docs/PRD.md); data model — [docs/data-model.md](docs/data-model.md); build order and every decision — [plan.md](plan.md); what was actually checked, tool evidence, and the mistakes log — [docs/verification.md](docs/verification.md); current state — [docs/STATUS.md](docs/STATUS.md); rules for Claude Code — [CLAUDE.md](CLAUDE.md).
 
 ## How to run locally
 
@@ -42,62 +36,85 @@ This repository currently contains the **requirements and agentic workflow start
    ```bash
    npm run dev
    ```
-   This starts the API on http://localhost:4000 and the client on http://localhost:5173. Open the client URL; `/api` requests are proxied to the API.
+   This starts the API on http://localhost:4000 and the client on http://localhost:5173. Open the client URL; `/api` requests are proxied to the API. (Other ports: set `PORT` in `server/.env`, and `CLIENT_PORT` / `API_PROXY_TARGET` in a gitignored `client/.env.local`.)
 6. **Check:** http://localhost:4000/api/health should return `{"status":"ok","api":"ok","database":"ok"}`.
 
-Other commands: `npm test` (server tests; resets and uses the separate `testimonial_mvp_test` database, never the dev data), `npm run test:client` (client unit tests, no database), `npm run build` (client production build), `npm run dev:server` / `npm run dev:client` (one side only).
+**Tests and build:** `npm test` (119 server tests; resets and uses the separate `testimonial_mvp_test` database, never the dev data), `npm run test:client` (5 client unit tests, no database), `npm run build` (client production build). Final result on `main`: **119/119**, **5/5**, build OK.
 
-The public collection link must point to a reachable host when demonstrating from another device. A localhost link works only on the same computer.
+**Try it:** log in as `demo@example.com` / `demo-password` (Free plan) → open a space's public link `/s/acme-bakery` in a private window and submit a testimonial with public consent → back in the inbox, add it to the wall → open `/s/acme-bakery/wall` → "Embed" on the dashboard card → "Upgrade (demo)" on the dashboard.
 
-## Scope status
+A localhost link works only on the same computer; demonstrating from another device needs a reachable host.
 
-| Feature | Status |
-| --- | --- |
-| Owner authentication | Implemented and verified (M2, merged in PR #1) |
-| Space creation and configuration | Implemented and verified (M2): name, subtitle, prompt, thank-you message, slug, questions, customer fields, theme, brand colour, logo; shown on the public page (M3) |
-| Anonymous text submission and thank-you page | Implemented and verified (M3, merged in PR #2) |
-| Inbox moderation and Wall of Love | Inbox merged (M3). Moderation (edit, hide, favourite, wall, delete) and the public wall `/s/:slug/wall` are implemented and verified (M4, merged in PR #3) |
-| Responsive iframe embed | Implemented and verified (M5, built in a parallel session, merged in PR #5): builder `/spaces/:id/embed` (linked from each dashboard card) with live preview and copyable snippet; public `/embed/:slug` |
-| Dashboard statistics | Implemented and verified (M6, merged in PR #4) |
-| Free/Paid quota enforcement | Space limit implemented and verified (M2, concurrency-safe); testimonial limits with accept but lock and the 1,000 hard cap implemented and verified (M3); deleting frees capacity (M4) |
-| Demo upgrade and saved plan state | Implemented and verified on branch `feature/m7-billing-demo` (M7), not merged yet: billing page with a clearly labelled simulated upgrade (no card fields, nothing charged), success page, billing history; Paid persists after logging out and in; limits rise and locked testimonials unlock |
-| Real Stripe checkout and webhooks | Not in this demo scope |
+## What is done
 
-**Not done for billing (by design, data-model D6):** real payments (Stripe or any provider), card details, downgrading, plan expiry, invoices. The upgrade is a simulation and is labelled as one everywhere.
+All PRD requirements FR-01 – FR-13 and every item of the final scope (PRD §11) are implemented and verified: automated tests plus a Playwright browser check per milestone, recorded in [docs/verification.md](docs/verification.md#feature-checks). A final read-only audit against the whole PRD found no functional gaps (Subagent usage log #18).
 
-**Not done for login (out of scope, PRD §10 Q10):** email verification, password reset, change password or email, delete account, "remember me", social login, multi-owner teams, and an admin role.
+| Feature (PRD) | Status | Milestone, PR |
+| --- | --- | --- |
+| Owner sign-up, login, logout, 7-day sessions, protected pages, rate limits (FR-01) | Done and verified | M2, [#1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) |
+| Public landing page with feature preview and pricing | Done and verified | M2, #1 (prices from the API since M7) |
+| Spaces: create, edit, delete, unique link, questions, customer fields off/optional/required, two+ themes, brand colour, logo, thank-you message, owner isolation (FR-02 – FR-04) | Done and verified | M2, #1 |
+| Public collection page without an account: fields, rating, answers, photo, two unchecked consents, validation, thank-you (FR-05, FR-06) | Done and verified | M3, [#2](https://github.com/ashfiatabassum/Agentic_Project/pull/2) |
+| Inbox: favourites first, filters, search, details, locked count (FR-07) | Done and verified | M3, #2 |
+| Moderation: edit (marked as edited), hide, favourite, wall, delete (FR-08) | Done and verified | M4, [#3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) |
+| Public Wall of Love: only on-wall, visible, consented, unlocked testimonials; no private data (FR-09) | Done and verified | M4, #3 |
+| Embed builder: grid / list / carousel, light / dark, background, logo header, animation, live preview, responsive iframe snippet; only `/embed/*` can be framed (FR-10) | Done and verified | M5, [#5](https://github.com/ashfiatabassum/Agentic_Project/pull/5), [#6](https://github.com/ashfiatabassum/Agentic_Project/pull/6) |
+| Dashboard: totals, plan and usage, recent activity, daily graph with 7/30 days, upgrade prompt (FR-11) | Done and verified | M6, [#4](https://github.com/ashfiatabassum/Agentic_Project/pull/4) |
+| Plan limits: 3 / 25 spaces (concurrency-safe), 100 / 1,000 visible per space with **accept but lock**, 1,000 hard cap (FR-12) | Done and verified | M2, M3, M6 |
+| Billing demo: plan comparison, clearly labelled simulated upgrade (no card fields, nothing charged), success page, history, Paid persists, limits rise and locked testimonials unlock (FR-13) | Done and verified | M7, [#7](https://github.com/ashfiatabassum/Agentic_Project/pull/7) |
 
-**Known limitation (embed):** only `/embed/:slug` may be shown inside another site's iframe; every other page sends `X-Frame-Options: DENY` and `Content-Security-Policy: frame-ancestors 'none'`. These page headers are set by the Vite dev/preview server (`client/frameHeaders.js`); this project has no production web server, so any host that serves `client/dist` must send the same headers. The snippet points to the origin the builder was opened on, and `frame-ancestors *` does not cover `file:` pages, so test the snippet from a page served over http(s).
+## What is not done
 
-**Known limitation:** login and sign-up rate limits are kept in server memory per IP. Behind a reverse proxy, set `TRUST_PROXY` (see `server/.env.example`), or every visitor shares one limit.
+**Excluded by design** (PRD §8, decided before building):
 
-The Paid upgrade is a **simulation**. It must never collect card information or be described as a real transaction. Price currency and billing cadence are unresolved in the current brief.
+- **Real payments:** no Stripe or any payment provider, no card details, no invoices. The upgrade is a simulation and is labelled as one everywhere; the database refuses a non-simulated billing event. No downgrade and no plan expiry (data-model D6).
+- **Video testimonials** (Testimonial.to's headline feature), NPS, brand monitoring, rewards, portfolio pages, imports (social or review sites), case studies, email notifications and automated invitations, AI features, custom domains, REST API / webhooks / Zapier, replying to testimonials, tags, multi-owner teams, and extra widget types (single-testimonial embed, badges, collect buttons).
+- **Account extras (PRD §10 Q10):** email verification, password reset, change password or email, delete account, "remember me", social login, admin role.
 
-## Agentic workflow evidence (fill with actual use)
+**Known limitations:**
 
-| Tool | Role | Intended use | Where / evidence after use |
-| --- | --- | --- | --- |
-| Claude Code hook | Core | Normalize whitespace after code edits | `.claude/settings.json`, `.claude/hooks/format-changed.cjs`, and observed run |
-| React skill | Core | Review UI structure, forms, state, accessibility | `.claude/skills/review-react-ui/`; findings in `docs/verification.md` |
-| MySQL skill (external) | Core | General MySQL/InnoDB guidance: keys, data types, indexes, EXPLAIN, locking, deadlocks | `.claude/skills/mysql/` from `planetscale/database-skills`, pinned in `skills-lock.json`; runs in the Skill usage log |
-| React best practices skill (external) | Core | React performance rules: re-renders, data fetching, bundle size (Next.js-only rules skipped) | `.claude/skills/vercel-react-best-practices/` from `vercel-labs/agent-skills`, pinned in `skills-lock.json`; runs in the Skill usage log |
-| Grill-me skill | Core | Stress-test each milestone plan through a question-by-question interview before coding | `.claude/skills/grill-me/` and `.claude/skills/grilling/` (from `mattpocock/skills`, pinned in `skills-lock.json`); each run in the Skill usage log in `docs/verification.md` |
-| MySQL skill | Core | Review schema, constraints, query boundaries | `.claude/skills/review-mysql-model/`; findings in `docs/verification.md` |
-| Playwright MCP | Core | Browser journey checks | `.mcp.json`; observed results in `docs/verification.md` |
-| Reviewer subagents | Core | Independent read-only reviews after each milestone: `code-reviewer` (correctness, quality, tests), `security-reviewer` (owner isolation, sessions, uploads, data exposure), `requirements-reviewer` (behaviour vs PRD) | `.claude/agents/`; each run in the Subagent usage log in `docs/verification.md` |
-| OpenSpec | Optional | Proposal, requirements, tasks for a feature | Link to committed `openspec/changes/...` |
-| Parallel session/branch | Required | Independent feature implementation and merge | Branch/merge commit and integration check |
+- **No production deployment.** The app runs locally with `npm run dev`. The anti-framing headers for client pages are set by the Vite dev/preview server (`client/frameHeaders.js`); any host serving `client/dist` must send the same headers. The embed snippet points to the origin the builder was opened on.
+- Rate limits are kept in server memory per IP; behind a reverse proxy set `TRUST_PROXY` (see `server/.env.example`). The public wall read and the simulated upgrade have no rate limit (accepted, plan.md E51, E113).
+- Small accepted items are listed in [docs/verification.md → Remaining gaps](docs/verification.md#remaining-gaps).
+- **Requirements source:** the app follows the agreed PRD. The instructor's separate *Project Requirements* lesson text was never available in this repository, so it was not compared line by line (PRD header).
 
-Configuration alone is not evidence of use. Update this table only after performing each action, and remove optional tools that were not used. Every individual skill run (when, which milestone, how it was invoked, and what changed) is listed in the **Skill usage log** in [docs/verification.md](docs/verification.md#skill-usage-log).
+## Agentic tools used, and where
+
+Configuration alone is not evidence; every row below links to recorded runs.
+
+| Tool | How it was used | Evidence |
+| --- | --- | --- |
+| **`CLAUDE.md`** | Project rules and verified commands: reading order, stack, owner isolation, quotas on the server, billing as a labelled simulation, feature loop, git workflow, logging rules | [CLAUDE.md](CLAUDE.md) |
+| **Skills (29 runs)** | `grill-me`/`grilling` interviewed the developer before the login feature (17 decisions); `mysql` + `review-mysql-model` reviewed tables, indexes, transactions and locking each milestone (EXPLAIN on the test database); `vercel-react-best-practices` + `review-react-ui` reviewed every client milestone; `dataviz` guided the dashboard chart | [Skill usage log](docs/verification.md#skill-usage-log) #1–#29 |
+| **Subagents (18 runs)** | Read-only reviewers in `.claude/agents/`: `code-reviewer`, `security-reviewer`, `requirements-reviewer` after each milestone (M2–M7), plus a final whole-PRD audit. They found real defects, e.g. a rate-limit bypass with padded slugs (M3), the missing logo in the embed (M5), a stale billing page after a second upgrade (M7) | [Subagent usage log](docs/verification.md#subagent-usage-log) #1–#18 |
+| **Hook** | A PostToolUse hook (`.claude/hooks/format-changed.cjs`) normalises whitespace after every Edit/Write; observed firing in M2, M4, M5 and M7 | [Agentic tool use](docs/verification.md#agentic-tool-use) |
+| **MCP: Playwright** | Browser checks per milestone: customer and owner journeys, second owner in an isolated context, 375 px, keyboard focus, forced errors, the embed on a separate-origin page, framing refusals, reduced motion, the billing journey | [Feature checks](docs/verification.md#feature-checks), screenshots below |
+| **Parallel session** | M5 (embed) was built in a **second Claude Code session** in a git worktree on `feature/m5-embed` while M6 (dashboard) was built in the first session; each merged by its own PR (M6 #4 first, M5 #5 second after merging `main`), then an integration check on `main` | [Parallel work and integration](docs/verification.md#parallel-work-and-integration) |
+| OpenSpec | **Not used** (optional); planning was done in `plan.md` with numbered decisions approved by the developer before each milestone | [plan.md](plan.md) |
+
+Every mistake along the way — by Claude, the developer, or the environment — is in the [Issues and corrections log](docs/verification.md#issues-and-corrections-log).
+
+## Screenshots
+
+All in [docs/screenshots/](docs/screenshots/), taken with Playwright MCP from the running app with synthetic data:
+
+- Landing and auth: `m2-landing-hero-1440.png`, `m2-login-1024.png`, `m2-signup-errors-1440.png`
+- Spaces: `m2-space-form.png`, `m2-space-created.png`, `m3-breadcrumbs-edit.png`
+- Public form and thank-you: `m3-public-warm-1440.png`, `m3-public-dark-375.png`, `m3-public-errors.png`, `m3-thank-you-warm.png`
+- Inbox and moderation: `m3-inbox-1440.png`, `m3-inbox-locked.png`, `m4-inbox-moderation.png`
+- Wall of Love: `m4-wall-desktop.png`, `m4-wall-375.png`, `m4-wall-dark-empty.png`
+- Embed: `m5-builder-1280.png`, `m5-host-grid-1280.png`, `m5-host-carousel-dark-375.png`, `m5-framing-blocked.png`
+- Dashboard: `m6-dashboard-desktop.png`, `m6-dashboard-375.png`, `m5-integration-dashboard-main.png`
+- Billing demo: `m7-billing-confirm.png`, `m7-billing-success.png`, `m7-billing-paid.png`
 
 ## Submission checklist
 
-- [ ] GitHub repository is public, or access is granted to the reviewer's GitHub username.
-- [ ] README contains verified run commands, exact done/not-done status, and which agentic tools were used and where.
-- [ ] Final data model and `CLAUDE.md` are committed.
-- [ ] At least two agentic tools were actually used; a separate branch/session was merged cleanly.
-- [ ] 2–5 minute recording or screenshots show the app working.
-- [ ] 200–300 word reflection (what worked, what went wrong and the fix, what to plan differently) is exported as PDF or DOCX.
+- [x] GitHub repository is public: https://github.com/ashfiatabassum/Agentic_Project (checked with `gh repo view`, 12 November 2026).
+- [x] README contains verified run commands, exact done/not-done status, and which agentic tools were used and where.
+- [x] Final data model and `CLAUDE.md` are committed.
+- [x] At least two agentic tools were actually used; a separate branch/session was merged cleanly.
+- [ ] 2–5 minute recording or screenshots show the app working (screenshots are in the repo; a recording is up to the developer).
+- [ ] 200–300 word reflection exported as PDF or DOCX (written by the developer; facts to draw on: [docs/reflection-notes.md](docs/reflection-notes.md)).
 - [ ] Repository and uploaded evidence were checked before final LMS submission.
 
 **LMS steps:** open the assignment → **Add submission** → paste the repo link → upload screenshots/recording and the reflection → **Save changes** → **Submit assignment**. A submitted assignment cannot be edited.

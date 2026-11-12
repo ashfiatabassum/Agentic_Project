@@ -3,7 +3,7 @@
 **Status:** Feature scope **final** (§11) and data model **final** ([data-model.md](data-model.md)), 11 November 2026. FR-01 Login is fully decided (§10); data-level rules for all features are in the data model; remaining UI behaviour details are settled as each milestone is planned.  
 **Date:** 11 November 2026.  
 **Owner:** Ashfia.  
-**Source:** User brief and discussion. The LMS assignment brief has been received ([assignment-brief.md](assignment-brief.md)); it sets the workflow and submission rules but not app features. The instructor's Project Requirements lesson (the feature list) has not yet been compared with this draft.
+**Source:** User brief and discussion. **Final note (M8, 12 November 2026):** the instructor's Project Requirements lesson text was never available in the repository, so this PRD was not compared with it line by line; the app follows this PRD, and the README says so. The LMS assignment brief has been received ([assignment-brief.md](assignment-brief.md)); it sets the workflow and submission rules but not app features. The instructor's Project Requirements lesson (the feature list) has not yet been compared with this draft.
 
 ## 1. Goal and scope
 
@@ -86,7 +86,7 @@ There is no separate platform administrator in this scope. “Admin” in the br
 - **Also excluded after comparing with Testimonial.to (11 Nov 2026):** AI features (writing help, sentiment, summaries, style generator), social/review imports, case studies, automated invitations and email assistant, custom domains, REST API/webhooks/Zapier/MCP, replying to testimonials, tags, and extra widget types (single-testimonial embed, badges, globe map, collect buttons). **Video** is Testimonial.to's headline feature; it is excluded here because recording, upload, storage, and playback would dominate the project. If the course's Project Requirements lesson requires video, it is listed as missing rather than relabelled.
 - **Unresolved:** The instructor's actual Project Requirements lesson must be compared with this draft. If it explicitly requires real Stripe, list it as incomplete rather than relabel the simulation.
 - **Resolved (grill-me, 11 Nov 2026):** the Paid plan price is **৳999 per month (BDT)**. It is displayed as a demo price; no money is charged.
-- **Unresolved:** Number/length of custom questions and profile-photo storage provider. Choose small defaults during OpenSpec planning and record them here.
+- **Resolved (M1–M3):** custom questions — at most 5 active per space, 200 characters each, answers up to 1,000 (data-model D12); profile photos and logos — stored on the local disk under `server/uploads/` (gitignored), JPEG/PNG/WebP up to 2 MB, checked by their bytes, served read-only with random names (plan.md E32).
 
 ## 9. Verification target
 

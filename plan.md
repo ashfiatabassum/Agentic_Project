@@ -475,7 +475,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 ---
 
-## M7 — Billing demo
+## M7 — Billing demo ✅
 
 **Goal:** a Free owner opens a billing page, compares Free (৳0) and Paid (৳999/month), and runs a **clearly labelled simulated** upgrade. No card fields, no real payment, never called Stripe. Afterwards the owner sees a success page and Paid on billing, the header, and the dashboard; the new limits apply at once (locked testimonials unlock, more spaces allowed); the plan survives logging out and in; each upgrade is recorded as an event.
 **Requirements covered:** FR-13; FR-12 (limits rise on upgrade); PRD §5 (upgrading raises *N* and unlocks automatically); PRD §11.9 items 1–5; data-model D6 (no downgrade, no expiry) and `billing_events`; closes the E19 known gap (landing-page prices copied from the seed).
@@ -516,7 +516,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] Playwright MCP journey (E111) plus the E113a two-tab check; screenshots `docs/screenshots/m7-billing-confirm`, `m7-billing-success`, `m7-billing-paid`
 - [x] Docs: verification.md (FR-13 row; skill, subagent, issue logs), STATUS, README, data-model (M7 query notes), this plan
 - [x] **Developer manual check** of the M7 branch; E113 confirmed (12 November 2026)
-- [ ] Push, PR to `main`, merge, record the PR and merge commit
+- [x] Push, PR to `main`, merge, record the PR and merge commit — [PR #7](https://github.com/ashfiatabassum/Agentic_Project/pull/7), merge commit `ea92815`
 
 ### Done when
 
@@ -532,6 +532,24 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - **The simulation could look like a real payment.** Mitigations: the demo banner on both pages, "(demo)" next to every price and button, no inputs, a confirmation dialog that says nothing is charged, and the database `CHECK (is_simulated = 1)`.
 - **Double upgrades (double click, two tabs).** Mitigation: the owner row lock and the 409; a parallel-request test.
 - **Stale plan in the browser.** Mitigation: the server is the authority on every request; the header updates from the upgrade response.
+
+---
+
+## M8 — Final check and submission ✅ (except the developer's own items)
+
+**Goal:** check the finished app against the whole PRD and the assignment brief, fix what is stale, and prepare the submission material.
+**Branch:** docs-only commit on `main` (CLAUDE.md allows documentation commits on `main`); a code fix would have had its own branch — none was needed.
+
+### Tasks
+
+- [x] Cleanup after M5/M6: `main` fast-forwarded in `C:\Agentic_Project`; throw-away test page stopped. Deleting the merged branches was refused by the permission system and is left to the developer (STATUS → Next actions).
+- [x] All checks on `main` at `ea92815`: `npm test` 119/119, `npm run test:client` 5/5, `npm run build` OK
+- [x] Final read-only audit against the whole PRD and the assignment brief (`requirements-reviewer`, Subagent log #18): no functional gaps; stale docs listed
+- [x] README rewritten for the grader: what the app does, how to run, what is done (with PRs), what is not done (PRD §8 exclusions, no deployment, requirements lesson not compared), agentic tools used and where (with links to the logs), screenshot index, submission checklist
+- [x] STATUS, verification (FR-10/FR-13 rows, PR #7 row, environment, gaps, logs), PRD §8 defaults, CLAUDE.md commands updated
+- [x] `docs/reflection-notes.md`: facts from the logs for the reflection (not the reflection itself)
+- [x] GitHub repository confirmed public (`gh repo view`)
+- [ ] **Developer:** 2–5 minute recording (or submit the screenshots), the 200–300-word reflection as PDF/DOCX, delete merged branches, LMS submission
 
 ---
 
