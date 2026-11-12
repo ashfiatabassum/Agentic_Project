@@ -240,7 +240,10 @@ export async function listTestimonials(ownerId, spaceId, { filter = 'all', q = '
     pool.execute(
       `SELECT r.id, r.name, r.job_title, r.company, r.rating, r.body, r.photo_path, r.consent_public, r.consent_social,
               r.is_hidden, r.is_favorite, r.on_wall, r.edited_at, r.created_at
-         FROM (SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.created_at, t.id) AS rn
+         -- Only the listed columns are materialised (mysql skill review: narrower temp table).
+         FROM (SELECT t.id, t.name, t.job_title, t.company, t.rating, t.body, t.photo_path, t.consent_public,
+                      t.consent_social, t.is_hidden, t.is_favorite, t.on_wall, t.edited_at, t.created_at,
+                      ROW_NUMBER() OVER (ORDER BY t.created_at, t.id) AS rn
                  FROM testimonials t WHERE t.space_id = ?) r
         WHERE r.rn <= ? ${FILTER_SQL[filter]} ${search}
         ORDER BY r.is_favorite DESC, r.created_at DESC, r.id DESC`,
@@ -278,16 +281,19 @@ export async function listTestimonials(ownerId, spaceId, { filter = 'all', q = '
 export async function getTestimonial(ownerId, spaceId, testimonialId) {
   const space = await ownedSpaceWithLimit(ownerId, spaceId);
   const pool = getPool();
-  const [[row]] = await pool.execute(
-    `SELECT r.* FROM (SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.created_at, t.id) AS rn
-                        FROM testimonials t WHERE t.space_id = ?) r
+  // Rank by id only (narrow temp table), then read the one row by primary key (mysql skill review).
+  const [[ranked]] = await pool.execute(
+    `SELECT r.rn FROM (SELECT t.id, ROW_NUMBER() OVER (ORDER BY t.created_at, t.id) AS rn
+                         FROM testimonials t WHERE t.space_id = ?) r
       WHERE r.id = ?`,
     [spaceId, testimonialId],
   );
-  if (!row) throw notFound();
-  if (Number(row.rn) > space.max_visible) {
+  if (!ranked) throw notFound();
+  if (Number(ranked.rn) > space.max_visible) {
     throw new HttpError(403, `This testimonial is locked on the ${space.plan_name} plan. Upgrade to see it.`, undefined, { locked: true });
   }
+  const [[row]] = await pool.execute('SELECT * FROM testimonials WHERE id = ? AND space_id = ?', [testimonialId, spaceId]);
+  if (!row) throw notFound(); // deleted in the meantime
   const [answers] = await pool.execute(
     'SELECT question_snapshot, answer_text FROM testimonial_answers WHERE testimonial_id = ? ORDER BY position, id',
     [testimonialId],
