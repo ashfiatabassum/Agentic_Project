@@ -137,6 +137,7 @@ Available project subagents (read-only; tools `Read, Grep, Glob, Bash`, with Bas
 | M3 public form and inbox (+ E34–E38) | [#2](https://github.com/ashfiatabassum/Agentic_Project/pull/2) — merged 2026-11-12 via `gh pr merge --merge` | `feature/m3-public-form-inbox` (10 commits) | `76a39c8` | `npm test` 68/68, `npm run build` OK | Not yet (developer will delete later) |
 | M4 moderation and Wall of Love (+ E54) | [#3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) — merged 2026-11-12 via `gh pr merge --merge` | `feature/m4-moderation-wall` (4 commits) | `d0149db` | `npm test` 85/85, `npm run build` OK | Not yet (developer will delete later) |
 | M6 dashboard statistics (+ E92–E93) — session A of the parallel work | [#4](https://github.com/ashfiatabassum/Agentic_Project/pull/4) — merged 2026-11-12 via `gh pr merge --merge`, **first** of the M5/M6 pair (`main` had not moved, no conflicts) | `feature/m6-dashboard-stats` (5 commits) | `139d025` | Merged tree identical to the tested branch head `e80595e` (same git tree `06104ec`), where `npm test` passed 99/99; on `main`: `npm run test:client` 5/5, `npm run build` OK | Not yet (developer will delete later) |
+| M5 embed builder (+ E73–E76) — session B of the parallel work, built in the worktree `C:\Agentic_Project-m5` | [#5](https://github.com/ashfiatabassum/Agentic_Project/pull/5) — merged 2026-11-12 via `gh pr merge --merge`, **second** of the pair, after merging `main` into the branch (`3ebf40f`) | `feature/m5-embed` (4 M5 commits + merge of `main` + 1 docs commit) | `393c4bd` | On the branch after merging `main`: `npm test` 108/108, `npm run test:client` 5/5, build OK; integration check on `main` below | Not yet (developer will delete later) |
 
 ## Parallel work and integration
 
@@ -150,7 +151,7 @@ Available project subagents (read-only; tools `Read, Grep, Glob, Bash`, with Bas
 - Merge order: M6 first, M5 second (E53). Session B merged `origin/main` (`b18a04f`) into `feature/m5-embed` before opening its PR.
 - Conflicts and resolution: `plan.md`, `docs/verification.md`, `docs/STATUS.md`, `README.md` — all "both sides added" (M5 and M6 sections, FR rows, log rows); resolved by keeping both (M5 section before M6 in the plan). `server/src/app.js` merged automatically (M6's `/api/dashboard` route and M5's `X-Frame-Options` header). The shared logs also had a **numbering clash git could not see**: both sessions used Skill usage log #20–21 and Subagent usage log #10–11; M6 (merged first) kept its numbers and M5's rows were renumbered to #24–25 and #12–14, with every M5 reference updated.
 - Checks on `feature/m5-embed` after merging `main` (merge commit `3ebf40f`), in a test turn the developer granted: `npm test` **108/108 pass** (99 from M1–M4 + M6, 9 M5), `npm run test:client` **5/5**, `npm run build` OK.
-- Merge commit: _pending_ (PR not opened yet).
+- Merge commit: [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5), `393c4bd` (M5 second). Follow-up: the dashboard space cards got an "Embed" link to the builder (deferred until M6 was merged) on `feature/m5-dashboard-embed-link`, browser-checked (link on each card, opens `/spaces/1/embed` with breadcrumb, preview and snippet).
 - Integrated checks after merge: _pending_ (Playwright check of the embed and the dashboard together on `main`).
 
 ## Issues and corrections log

@@ -57,7 +57,7 @@ The public collection link must point to a reachable host when demonstrating fro
 | Space creation and configuration | Implemented and verified (M2): name, subtitle, prompt, thank-you message, slug, questions, customer fields, theme, brand colour, logo; shown on the public page (M3) |
 | Anonymous text submission and thank-you page | Implemented and verified (M3, merged in PR #2) |
 | Inbox moderation and Wall of Love | Inbox merged (M3). Moderation (edit, hide, favourite, wall, delete) and the public wall `/s/:slug/wall` are implemented and verified (M4, merged in PR #3) |
-| Responsive iframe embed | Implemented and verified on branch `feature/m5-embed` (M5, parallel session B), not merged yet: builder `/spaces/:id/embed` with live preview and copyable snippet; public `/embed/:slug` |
+| Responsive iframe embed | Implemented and verified (M5, built in a parallel session, merged in PR #5): builder `/spaces/:id/embed` (linked from each dashboard card) with live preview and copyable snippet; public `/embed/:slug` |
 | Dashboard statistics | Implemented and verified (M6, merged in PR #4) |
 | Free/Paid quota enforcement | Space limit implemented and verified (M2, concurrency-safe); testimonial limits with accept but lock and the 1,000 hard cap implemented and verified (M3); deleting frees capacity (M4) |
 | Demo upgrade and saved plan state | Planned |

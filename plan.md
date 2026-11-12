@@ -330,11 +330,11 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 ---
 
-## M5 — Embed builder
+## M5 — Embed builder ✅
 
 **Goal:** the owner opens an embed builder for one of their spaces, chooses layout, light/dark mode, background colour, and animation, sees a live preview, and copies a responsive iframe snippet. A public route `/embed/:slug` renders the space's Wall of Love with those settings inside any website. It shows exactly what the wall shows (E48) and nothing more.
 **Requirements covered:** FR-10; PRD §11.6 items 1–5; FR-04 (embed reflects the saved brand colour and logo); PRD §5 (locked, hidden, and non-consenting items never in embeds; no private data); PRD §7 (responsive iframe pointing to a public wall route); PRD §9 (embed checked in a separate test HTML page).
-**Branch:** `feature/m5-embed` from `main` at `5a0f8b9`, built in a **separate Claude Code session** in the worktree `C:\Agentic_Project-m5` (session B, plan.md E53/E55), merged by pull request. **Status:** decisions E60–E72 approved by the developer ("start", 12 November 2026). Implemented, reviewed, and browser-verified on the branch; E73–E76 (after the reviews) confirmed by the developer, 12 November 2026.
+**Branch:** `feature/m5-embed` from `main` at `5a0f8b9`, built in a **separate Claude Code session** in the worktree `C:\Agentic_Project-m5` (session B, plan.md E53/E55), merged by pull request. **Status:** decisions E60–E72 approved by the developer ("start", 12 November 2026). Implemented, reviewed, and browser-verified on the branch; E73–E76 (after the reviews) confirmed by the developer, 12 November 2026. Merged second (after M6) by [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5), merge commit `393c4bd`.
 **Schema:** no migration. Embed settings live in the iframe URL (data-model D7).
 
 ### Decisions (E60–E72) — approved by the developer, 12 November 2026
@@ -376,7 +376,9 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] Playwright MCP check (E71); screenshots `docs/screenshots/m5-*` (`m5-host-grid-1280`, `m5-host-carousel-dark-375`, `m5-builder-1280`, `m5-framing-blocked`)
 - [x] Docs: verification.md (FR-10 row; parallel-work evidence: branch, session, commit times; skill, subagent, issue logs), STATUS, README (status, embed usage, production header note), this plan
 - [x] **Developer manual check** of the M5 branch; E73–E76 confirmed and commits approved (12 November 2026) — `551334e`, `b0bb8d0`, `15fe019`, `e09d182`
-- [ ] Push, PR to `main` (M6 merged first, so `main` at `b18a04f` was merged into this branch: conflicts only in the four shared docs, resolved by keeping both sides, `3ebf40f`; then `npm test` 108/108, client tests 5/5, build OK), merge, record PR and merge commit; Playwright check of embed + dashboard together on `main`
+- [x] Push, PR to `main` — [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5), merge commit `393c4bd` (M6 merged first, so `main` at `b18a04f` was merged into this branch: conflicts only in the four shared docs, resolved by keeping both sides, `3ebf40f`; then `npm test` 108/108, client tests 5/5, build OK), merged and recorded
+- [x] Dashboard space cards link to the builder ("Embed"), deferred until M6 was merged (E76) — `feature/m5-dashboard-embed-link`, browser-checked
+- [ ] Integration check on `main` after both merges: tests plus a browser check of the embed and the dashboard together (parallel-work evidence)
 
 ### Done when
 
