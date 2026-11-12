@@ -5,6 +5,14 @@ import { config, isDbConfigured } from './config.js';
 
 let pool = null;
 
+/**
+ * All DATETIME values are UTC (data-model.md Q3). `timezone: 'Z'` only tells mysql2 how to convert
+ * JS Dates; MySQL's own NOW()/CURRENT_TIMESTAMP (column defaults) follow the *session* time zone,
+ * which defaults to the server's system zone (Bangladesh, UTC+6, on the dev machine). Every
+ * connection therefore sets its session to UTC (M6 finding E92).
+ */
+export const SET_UTC = "SET time_zone = '+00:00'";
+
 export function getPool() {
   if (!isDbConfigured()) {
     throw new Error('Database is not configured: set DB_USER and DB_NAME in server/.env');
@@ -16,6 +24,16 @@ export function getPool() {
       connectionLimit: 10,
       charset: 'utf8mb4',
       timezone: 'Z',
+    });
+    // Runs on each new physical connection, before any query is queued on it. If it fails, the
+    // connection is destroyed rather than left in the server's zone (code review).
+    pool.pool.on('connection', (conn) => {
+      conn.query(SET_UTC, (error) => {
+        if (error) {
+          console.error('Could not set the MySQL session time zone to UTC:', error.message);
+          conn.destroy();
+        }
+      });
     });
   }
   return pool;

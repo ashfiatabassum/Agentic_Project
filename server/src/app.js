@@ -5,6 +5,7 @@ import { createRateLimiter } from './lib/rateLimit.js';
 import { uploadsRoot } from './lib/uploads.js';
 import { jsonOnly } from './middleware/jsonOnly.js';
 import { createAuthRouter } from './routes/auth.js';
+import dashboardRouter from './routes/dashboard.js';
 import healthRouter from './routes/health.js';
 import { createPublicRouter } from './routes/public.js';
 import spacesRouter from './routes/spaces.js';
@@ -55,6 +56,7 @@ export function createApp({ rateLimits = {} } = {}) {
   app.use('/api/health', healthRouter);
   app.use('/api/auth', createAuthRouter(limits));
   app.use('/api/themes', themesRouter);
+  app.use('/api/dashboard', dashboardRouter);
   app.use('/api/spaces/:spaceId/testimonials', testimonialsRouter);
   app.use('/api/spaces', spacesRouter);
   app.use('/api/public', createPublicRouter(limits));

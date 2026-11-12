@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import mysql from 'mysql2/promise';
 import { config, isDbConfigured } from '../src/config.js';
+import { SET_UTC } from '../src/db.js';
 
 const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'migrations');
 const FILE_PATTERN = /^\d{3}_[a-z0-9_]+\.sql$/;
@@ -35,7 +36,9 @@ async function connect() {
     throw new Error('Database is not configured: set DB_USER and DB_NAME (server/.env or server/.env.test)');
   }
   // A dedicated connection: migration files contain several statements (CREATE + seed INSERTs).
-  return mysql.createConnection({ ...config.db, multipleStatements: true, charset: 'utf8mb4', timezone: 'Z' });
+  const conn = await mysql.createConnection({ ...config.db, multipleStatements: true, charset: 'utf8mb4', timezone: 'Z' });
+  await conn.query(SET_UTC); // defaults such as plans.created_at in UTC too (E92, code review)
+  return conn;
 }
 
 async function ensureMigrationsTable(conn) {

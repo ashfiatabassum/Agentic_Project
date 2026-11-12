@@ -366,7 +366,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 ### Tasks
 
-- [x] Task 0: configurable dev ports (E60) — done and checked (`/api/health` through 5174 → `"database":"ok"`; defaults still 5173 → 4000); not committed yet (awaiting the developer's OK)
+- [x] Task 0: configurable dev ports (E60) — done and checked (`/api/health` through 5174 → `"database":"ok"`; defaults still 5173 → 4000) — `551334e`
 - [x] Developer approved E60–E72 (12 November 2026)
 - [x] Client: `embed/embedSettings.js` (parse + build URL + snippet) and the frame-header rule + Vite plugin (E61, E64, E68); `X-Frame-Options` on `/api` (E68)
 - [x] Client: `/embed/:slug` page with three layouts, mode, background, animation, reduced motion, auto-height message, auth check skipped (E65–E67)
@@ -375,8 +375,8 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] Reviews, **each once at the end**: `review-react-ui` + `vercel-react-best-practices` (no schema or query change, so the MySQL skills are not needed; recorded as such). Subagents: `code-reviewer` (only one that runs tests), `security-reviewer` (public embed, framing headers, postMessage, sandbox), `requirements-reviewer` (FR-10, §11.6). Findings recorded in `docs/verification.md`
 - [x] Playwright MCP check (E71); screenshots `docs/screenshots/m5-*` (`m5-host-grid-1280`, `m5-host-carousel-dark-375`, `m5-builder-1280`, `m5-framing-blocked`)
 - [x] Docs: verification.md (FR-10 row; parallel-work evidence: branch, session, commit times; skill, subagent, issue logs), STATUS, README (status, embed usage, production header note), this plan
-- [ ] **Developer manual check** of the M5 branch
-- [ ] Push, PR to `main` (if M6 merged first: merge `main` into this branch, resolve conflicts, rerun tests and build), merge, record PR and merge commit; Playwright check of embed + dashboard together on `main`
+- [x] **Developer manual check** of the M5 branch; E73–E76 confirmed and commits approved (12 November 2026) — `551334e`, `b0bb8d0`, `15fe019`, `e09d182`
+- [ ] Push, PR to `main` (M6 merged first, so `main` at `b18a04f` was merged into this branch: conflicts only in the four shared docs, resolved by keeping both sides; tests and build to rerun), merge, record PR and merge commit; Playwright check of embed + dashboard together on `main`
 
 ### Done when
 
@@ -395,6 +395,81 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - **Headers only exist where Vite serves the HTML.** A production host would need the same rule; documented in the README as a known limitation.
 - **Slug changes break pasted snippets** (as with public links). The builder notes that changing the space's link changes the embed code.
 - **Merge conflicts with M6** in `App.jsx`, `AuthContext.jsx`, and the shared docs. Kept small by adding routes in one place and not touching `DashboardPage.jsx`; resolved by whichever branch merges second.
+
+---
+
+## M6 — Dashboard statistics and plan limits UI ✅
+
+**Goal:** the dashboard shows the owner's totals (spaces, testimonials, locked), current plan and usage against its limits, recent activity, and a daily submissions graph with a 7/30-day switch. Free owners see an upgrade prompt. All numbers are calculated on the server for the signed-in owner only.
+**Requirements covered:** FR-11, FR-12 (limits shown in the UI); PRD §11.7 and §11.8; data-model D8 (recent activity derived, not stored).
+**Branch:** `feature/m6-dashboard-stats` from `main`, built in **session A** (this folder) while session B builds M5 in the worktree (E53, E55). Merged by pull request. **Status:** implemented, reviewed, and browser-verified on the branch (12 November 2026); checked by hand by the developer and E92–E93 confirmed (12 November 2026); merged by [PR #4](https://github.com/ashfiatabassum/Agentic_Project/pull/4), merge commit `139d025` (first of the M5/M6 pair; M5 must merge `main` into its branch and re-test before merging, E53).
+**Schema:** no migration. The graph uses the existing index `(space_id, created_at)`; `billing_events` exists (M1) and stays empty until M7.
+
+### Decisions (E80–E91) — approved by the developer, 12 November 2026
+
+| # | Decision | Proposed |
+| --- | --- | --- |
+| E80 | Stats API | One owner-only request: `GET /api/dashboard?days=7\|30&tzOffset=<minutes>`. It returns `{ plan, totals, daily, recent }`. The space cards keep using `GET /api/spaces`; the page fetches both **in parallel**. Every query is scoped by `owner_id` from the session; another owner's data never appears. Bad `days` or `tzOffset` → 400. |
+| E81 | Totals | `spaces` (count); `testimonials` (all saved); `visible` and `locked` (summed per space with the same ranking rule as the inbox); `inPeriod` (received in the selected 7 or 30 days). Hidden testimonials count as visible (PRD §5). |
+| E82 | Plan and usage (FR-12 UI) | The plan's name, `maxSpaces` and `maxVisiblePerSpace` come from the `plans` row, never hard-coded. The dashboard shows "Spaces: 2 of 3" as a bar. Each space card shows "87 of 100 visible" and turns amber from 80% and red at the limit, plus "· N locked" (as now). |
+| E83 | Daily graph | Counts **all saved testimonials** per day (including hidden and locked ones; the graph shows activity, not content) for the last 7 or 30 days, including today. Days with nothing are filled with 0 on the server, so the response always has exactly 7 or 30 entries `{ date: 'YYYY-MM-DD', count }`. |
+| E84 | Time zone | Days are grouped in the **owner's local time**: the browser sends its UTC offset in minutes (`tzOffset`, validated −720 to +840); the server groups by `DATE(created_at + INTERVAL ? MINUTE)`. No MySQL time-zone tables are needed. A testimonial sent at 23:30 in Dhaka counts on that Dhaka day, not the next UTC day. Daylight-saving changes inside the range are ignored (Bangladesh has none; noted as a limit). |
+| E85 | 7/30 selector | Two toggle buttons (`aria-pressed`), default 7 days. The choice is kept in the URL (`/dashboard?range=30`), so refresh and Back keep it. Switching refetches only the stats, and the old chart stays visible (dimmed) while loading. |
+| E86 | Chart | A hand-made, responsive **SVG bar chart**, with no chart library (no new dependency, small bundle). Built with the `dataviz` skill's guidance. Each bar has a tooltip and focus label ("12 Nov: 3 testimonials"). The SVG has a text summary for screen readers ("12 testimonials in the last 7 days; busiest day 10 Nov with 4"), plus a "Show as table" toggle. With 30 days at 375 px: thin bars, and only some date labels shown. |
+| E87 | Recent activity | The latest 10 events across the owner's spaces, newest first (`UNION ALL`, D8): "New testimonial from Nadia Rahman in Acme Bakery", "Space Night Owl Studio created", and billing events (none until M7). **A locked testimonial is shown without its name:** "A new testimonial arrived in Night Owl Studio (locked on the Free plan)". Each event links to the space's inbox, with relative time ("2 hours ago") and the exact time on hover. |
+| E88 | Upgrade prompt | Free owners see a card: "You're on the Free plan: 3 spaces, 100 visible testimonials per space. Paid (demo, ৳999/month): 25 spaces, 1,000 per space." When `locked > 0` it says how many are locked. The upgrade button arrives with billing in M7; until then the card says "Upgrade (demo) is coming soon", as the inbox banner does. Paid owners don't see it. |
+| E89 | Page layout | Order: heading + plan line → 4 stat tiles (Spaces x/y, Testimonials, Locked, Received in range) → graph with the selector → recent activity + upgrade card side by side (stacked on mobile) → "Your spaces" cards (unchanged plus E82). Works down to 375 px. Empty states: a new owner sees zeros, an empty graph with "No testimonials yet", and "No activity yet". |
+| E90 | Errors | If the stats request fails, the space cards still show and the stats area shows an error with "Try again" (one failure does not blank the dashboard). |
+| E91 | Demo data | Seed unchanged. Tests insert rows with chosen `created_at` values (including near-midnight times) directly in the test database. |
+
+### Decisions found during implementation and review (E92–E93) — confirmed by the developer, 12 November 2026
+
+| # | Decision | Chosen |
+| --- | --- | --- |
+| E92 | Timestamps stored 6 hours ahead (bug since M1, found by the M6 activity tests) | MySQL's session time zone was `SYSTEM` (Bangladesh, UTC+6), but mysql2 reads DATETIME values as UTC (`timezone: 'Z'`). So every value MySQL filled in itself (`DEFAULT CURRENT_TIMESTAMP`: spaces, users, testimonials sent through the public form) was 6 hours ahead, while values the code wrote with `UTC_TIMESTAMP()` (sessions, `edited_at`, seed testimonials) were correct. **Fix:** every connection runs `SET time_zone = '+00:00'` (the app pool, the seed, and the test helper), as data-model.md already promised ("DATETIME in UTC"). A regression test checks the session zone and that `created_at` is within 2 minutes of now. Old dev rows could not be told apart reliably, so at the developer's request the dev database was reset and reseeded (12 November 2026). Sessions and the rate limits were never affected. |
+| E93 | Review items fixed at the developer's request ("fix all the things") | (a) **Daylight saving (revises E84):** the browser sends its IANA zone (`tz=Asia/Dhaka`, from `Intl.DateTimeFormat().resolvedOptions().timeZone`) instead of one offset. The server counts testimonials in 15-minute UTC buckets and maps each bucket to the owner's local date with `Intl` (Node's full ICU), and the range starts at local midnight with that day's offset. Unknown zones → 400. (b) **One snapshot:** all dashboard reads run in one transaction, so the totals, graph and locked labels always agree. (c) **Plans from the database (revises E88):** the response includes `upgradeTo` (the next plan up from `plans`: name, price, currency, interval, limits); the card no longer reads `client/src/lib/plans.js` (the landing page still does until M7). (d) **Client unit tests:** the chart's pure helpers moved to `client/src/dashboard/chartMath.js` with `node:test` tests (`npm run test:client`). (e) Also from the code review: `migrate.js` uses the UTC session, and a failed `SET time_zone` destroys the pooled connection. |
+
+### Tasks
+
+- [x] Developer approved E80–E91 (12 November 2026); create branch `feature/m6-dashboard-stats` from up-to-date `main`
+- [x] Server: `GET /api/dashboard` (E80–E84, E87) in `services/dashboard.js` + `routes/dashboard.js`, owner-scoped, validated query, zero-filled days, `UNION ALL` activity with locked names removed
+- [x] Client: dashboard stat tiles, usage bar, card usage (E82), range selector in the URL (E85), SVG chart with table toggle (E86), activity list (E87), upgrade card (E88), error and empty states (E89–E90)
+- [x] Tests (`server/test/dashboard.test.js`) — 14 tests, including the E92 regression test and E93 daylight saving; plus 5 client tests (`chartMath.test.js`):
+  - owner isolation: another owner's spaces and testimonials are never counted or listed;
+  - totals with locked (101 rows on Free → 100 visible, 1 locked) and hidden;
+  - 7 and 30 days with zero-filled gaps, exact length;
+  - the time-zone boundary (23:30 UTC+6 counts on the local day);
+  - `days`/`tzOffset` validation (400);
+  - recent activity order and limit of 10, with the locked one shown without its name;
+  - a new owner sees zeros; logged out → 401.
+- [x] Reviews, **each run once at the end** (Skill usage log #20–23, Subagent usage log #10–11): `review-react-ui` + `vercel-react-best-practices`, `review-mysql-model` + `mysql` (EXPLAIN on the graph and activity queries). Subagents: `code-reviewer` (the only one running tests, and only after asking whether session B is testing, E55), `requirements-reviewer`; `security-reviewer` only if the review finds a public or auth change (none planned).
+- [x] Playwright MCP, using snapshots for the checks and screenshots only for the final evidence (`docs/screenshots/m6-*`); plus a forced 500 for E90:
+  - demo owner: tiles, usage, graph, activity match the database;
+  - switch 7 → 30, refresh keeps 30, Back works;
+  - a new submission appears in the graph and activity after a reload;
+  - locked activity shows no name;
+  - Free upgrade card;
+  - 375 px with no sideways scroll;
+  - a second owner sees only their own numbers.
+- [x] Docs: verification.md (FR-11, FR-12 rows; skill, subagent, and issue logs), STATUS, README status, this plan
+- [x] **Developer manual check** of the M6 branch and E92–E93 confirmed — done by the developer, 12 November 2026
+- [x] Push, PR to `main`, merge, record the PR and merge commit — [PR #4](https://github.com/ashfiatabassum/Agentic_Project/pull/4), merge commit `139d025`, merged first; on `main`: same tree as the 99/99 branch head, client tests 5/5, build OK
+
+### Done when
+
+- [x] All server tests pass (M1–M4 + new M6 tests), run without clashing with session B (E55) — 99/99 in a granted test turn; client tests 5/5
+- [x] Owner isolation, time-zone grouping, zero-filled days, and locked-name hiding are covered by tests
+- [x] Playwright journey above passes; final screenshots saved in `docs/screenshots/m6-*`
+- [x] Skill and subagent findings fixed or recorded
+- [x] `npm run build` succeeds; no secrets committed (checked the staged file list)
+
+### Risks
+
+- **Wrong day boundaries.** The server is UTC and the owner is not. Mitigations: the explicit offset (E84) and a near-midnight test.
+- **Leaking content through activity.** Locked testimonials must not reveal a name. Mitigation: tested (E87).
+- **Slow queries for owners with many testimonials** (up to 25 spaces × 1,000). Mitigation: owner-scoped joins on the `(space_id, created_at)` index, with EXPLAIN ANALYZE in the mysql review.
+- **Merge conflict with M5.** M5 may add an "Embed" link to the dashboard space cards. Expected and small; resolved by the branch that merges second.
+- **The chart is not accessible.** Mitigations: a text summary, a table toggle, focusable bars, and colour that is not the only cue.
 
 ---
 
