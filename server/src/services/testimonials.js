@@ -199,6 +199,9 @@ export async function submitTestimonial(slug, { data, photo = null }) {
 
 // ---------------------------------------------------------------- owner inbox (E28–E30)
 
+const lockedError = (planName) =>
+  new HttpError(403, `This testimonial is locked on the ${planName} plan. Upgrade to see it.`, undefined, { locked: true });
+
 /** Owner's space with the plan limit; 404 for anyone else. */
 async function ownedSpaceWithLimit(ownerId, spaceId) {
   const [[space]] = await getPool().execute(
@@ -305,9 +308,7 @@ export async function getTestimonial(ownerId, spaceId, testimonialId) {
     [spaceId, testimonialId],
   );
   if (!ranked) throw notFound();
-  if (Number(ranked.rn) > space.max_visible) {
-    throw new HttpError(403, `This testimonial is locked on the ${space.plan_name} plan. Upgrade to see it.`, undefined, { locked: true });
-  }
+  if (Number(ranked.rn) > space.max_visible) throw lockedError(space.plan_name);
   const [[row]] = await pool.execute(
     `SELECT id, name, email, job_title, company, social_link, rating, body, original_body, photo_path,
             consent_public, consent_social, is_hidden, is_favorite, on_wall, edited_at, created_at
@@ -338,5 +339,208 @@ export async function getTestimonial(ownerId, spaceId, testimonialId) {
     editedAt: row.edited_at,
     createdAt: row.created_at,
     answers: answers.map((a) => ({ question: a.question_snapshot, answer: a.answer_text })),
+  };
+}
+
+// ---------------------------------------------------------------- moderation (M4: E39–E46)
+
+/**
+ * Inside a transaction: locks one testimonial row of the owner's space and checks it is visible
+ * (E39, E40). Another owner's space, another space's testimonial, or an unknown id → 404; a
+ * locked testimonial → 403 { locked: true }. Only the testimonial row is locked (never the
+ * user or space row), so the user → space lock order (data-model.md) is kept.
+ */
+async function lockVisibleTestimonial(conn, ownerId, spaceId, testimonialId) {
+  const [[row]] = await conn.execute(
+    `SELECT t.id, t.name, t.job_title, t.company, t.social_link, t.rating, t.body, t.original_body, t.photo_path,
+            t.consent_public, t.is_hidden, t.is_favorite, t.on_wall,
+            p.name AS plan_name, p.max_testimonials_per_space AS max_visible
+       FROM testimonials t
+       JOIN spaces s ON s.id = t.space_id
+       JOIN users u ON u.id = s.owner_id
+       JOIN plans p ON p.code = u.plan_code
+      WHERE t.id = ? AND t.space_id = ? AND s.owner_id = ?
+        FOR UPDATE OF t`,
+    [testimonialId, spaceId, ownerId],
+  );
+  if (!row) throw notFound();
+  // Snapshot (non-locking) rank read after the locking read: safe only because a rank can only
+  // fall (deletes) and the limit only rise (upgrade). If a plan downgrade or moving testimonials
+  // between spaces is ever added, re-check this (data-model.md → "Moderation (M4)").
+  const [[ranked]] = await conn.execute(
+    `SELECT r.rn FROM (SELECT t.id, ROW_NUMBER() OVER (ORDER BY t.created_at, t.id) AS rn
+                         FROM testimonials t WHERE t.space_id = ?) r
+      WHERE r.id = ?`,
+    [spaceId, testimonialId],
+  );
+  if (!ranked || Number(ranked.rn) > row.max_visible) throw lockedError(row.plan_name);
+  return row;
+}
+
+const FLAG_KEYS = ['favorite', 'hidden', 'onWall'];
+export const NO_PUBLIC_CONSENT = 'The customer did not agree to public display, so it cannot go on the Wall of Love.';
+export const UNHIDE_FIRST = 'Hidden testimonials cannot go on the Wall of Love. Unhide it first.';
+
+/** E41: any of { favorite, hidden, onWall }, booleans only, at least one. */
+export function parseFlags(body) {
+  if (!isPlainObject(body)) throw validationError({ form: 'Expected a JSON object' });
+  const v = new Validator();
+  const keys = Object.keys(body);
+  if (keys.length === 0) v.error('form', 'Send at least one of: favorite, hidden, onWall');
+  for (const key of keys) {
+    if (!FLAG_KEYS.includes(key)) v.error(key, `${key} cannot be changed here`);
+    else if (typeof body[key] !== 'boolean') v.error(key, `${key} must be true or false`);
+  }
+  v.assert();
+  return { favorite: body.favorite, hidden: body.hidden, onWall: body.onWall };
+}
+
+/**
+ * E41–E43: favourite, hide/unhide, wall on/off. Hiding also takes it off the wall (the DB CHECK
+ * requires it); unhiding does not put it back. The wall needs public consent and not hidden (409).
+ */
+export async function updateFlags(ownerId, spaceId, testimonialId, flags) {
+  await withTransaction(async (conn) => {
+    const row = await lockVisibleTestimonial(conn, ownerId, spaceId, testimonialId);
+    const favorite = flags.favorite ?? row.is_favorite === 1;
+    const hidden = flags.hidden ?? row.is_hidden === 1;
+    let onWall = flags.onWall ?? row.on_wall === 1;
+    if (hidden) {
+      if (flags.onWall === true) throw new HttpError(409, UNHIDE_FIRST);
+      onWall = false;
+    }
+    if (onWall && row.consent_public !== 1) throw new HttpError(409, NO_PUBLIC_CONSENT);
+    await conn.execute(
+      'UPDATE testimonials SET is_favorite = ?, is_hidden = ?, on_wall = ? WHERE id = ?',
+      [favorite ? 1 : 0, hidden ? 1 : 0, onWall ? 1 : 0, testimonialId],
+    );
+  });
+  // Re-read after commit (accepted, code review): if another tab deletes the row in between, the
+  // owner sees 404 although this change was saved — harmless, the row is gone either way.
+  return getTestimonial(ownerId, spaceId, testimonialId);
+}
+
+const CONTENT_KEYS = ['name', 'jobTitle', 'company', 'socialLink', 'rating', 'body', 'removePhoto'];
+const ONLY_THE_CUSTOMER = 'Only the customer can give or withdraw consent';
+const NOT_EDITABLE = {
+  email: "The customer's email cannot be changed",
+  consentPublic: ONLY_THE_CUSTOMER,
+  consentSocial: ONLY_THE_CUSTOMER,
+};
+
+/**
+ * E44: the owner may edit name, job title, company, social link, rating, and text (same limits as
+ * the public form, whatever the space's field modes) and remove the photo. Email, consents,
+ * answers, and dates are never editable: sending them is a 400, not silently ignored.
+ */
+export function parseContent(body) {
+  if (!isPlainObject(body)) throw validationError({ form: 'Expected a JSON object' });
+  const v = new Validator();
+  for (const key of Object.keys(body)) {
+    if (!CONTENT_KEYS.includes(key)) v.error(key, NOT_EDITABLE[key] ?? `${key} cannot be edited`);
+  }
+  const values = {
+    name: v.text(body.name, 'name', { label: 'Name', max: 100, required: true }),
+    job_title: v.text(body.jobTitle, 'jobTitle', { label: 'Job title', max: 100 }),
+    company: v.text(body.company, 'company', { label: 'Company', max: 100 }),
+    social_link: v.text(body.socialLink, 'socialLink', { label: 'Social link', max: 300 }),
+    rating: null,
+    body: v.text(body.body, 'body', { label: 'Testimonial', max: 2000, required: true }),
+  };
+  if (values.social_link && charLength(values.social_link) <= 300) {
+    const problem = socialLinkProblem(values.social_link);
+    if (problem) v.error('socialLink', problem);
+  }
+  const { rating } = body;
+  if (rating !== undefined && rating !== null && rating !== '') {
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) v.error('rating', 'Rating must be a whole number from 1 to 5, or empty');
+    else values.rating = rating;
+  }
+  if (body.removePhoto !== undefined && typeof body.removePhoto !== 'boolean') v.error('removePhoto', 'removePhoto must be true or false');
+  v.assert();
+  return { values, removePhoto: body.removePhoto === true };
+}
+
+/**
+ * E44–E45: saves the edit. Only a real change sets edited_at; the first change of the text keeps
+ * the customer's words in original_body. A removed photo's file is deleted after commit.
+ */
+export async function updateContent(ownerId, spaceId, testimonialId, { values, removePhoto }) {
+  const oldPhoto = await withTransaction(async (conn) => {
+    const row = await lockVisibleTestimonial(conn, ownerId, spaceId, testimonialId);
+    const changes = {};
+    for (const [column, value] of Object.entries(values)) {
+      if (row[column] !== value) changes[column] = value;
+    }
+    const dropPhoto = removePhoto && row.photo_path !== null;
+    if (dropPhoto) changes.photo_path = null;
+    if (Object.keys(changes).length === 0) return null;
+    if ('body' in changes && row.original_body === null) changes.original_body = row.body;
+    await conn.query('UPDATE testimonials SET ?, edited_at = UTC_TIMESTAMP() WHERE id = ?', [changes, testimonialId]);
+    return dropPhoto ? row.photo_path : null;
+  });
+  await removeUpload(oldPhoto); // file I/O only after commit (data-model.md)
+  return getTestimonial(ownerId, spaceId, testimonialId);
+}
+
+/** E46: deletes a visible testimonial (answers cascade); its photo file is removed after commit. */
+export async function deleteTestimonial(ownerId, spaceId, testimonialId) {
+  const photoPath = await withTransaction(async (conn) => {
+    const row = await lockVisibleTestimonial(conn, ownerId, spaceId, testimonialId);
+    await conn.execute('DELETE FROM testimonials WHERE id = ?', [testimonialId]);
+    return row.photo_path;
+  });
+  await removeUpload(photoPath);
+}
+
+// ---------------------------------------------------------------- public Wall of Love (E48)
+
+/**
+ * Wall testimonials of one space: on the wall, not hidden, public consent, and not locked.
+ * Columns are listed explicitly; never email, social link, consents, original text, answers,
+ * ids, counts, owner, or plan (data-model.md R7). Newest first.
+ */
+export async function getPublicWall(slug) {
+  if (slugProblem(slug)) throw notFound();
+  const pool = getPool();
+  const [[space]] = await pool.execute(
+    `SELECT s.id, s.slug, s.title, s.subtitle, s.theme_code, s.brand_color, s.logo_path,
+            p.max_testimonials_per_space AS max_visible
+       FROM spaces s
+       JOIN users u ON u.id = s.owner_id
+       JOIN plans p ON p.code = u.plan_code
+      WHERE s.slug = ?`,
+    [slug],
+  );
+  if (!space) throw notFound();
+  // Rank ids only (narrow temp table), then read the eligible rows by primary key.
+  const [rows] = await pool.execute(
+    `SELECT t.name, t.job_title, t.company, t.photo_path, t.rating, t.body, t.edited_at, t.created_at
+       FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY created_at, id) AS rn
+               FROM testimonials WHERE space_id = ?) r
+       JOIN testimonials t ON t.id = r.id
+      WHERE r.rn <= ? AND t.on_wall = 1 AND t.is_hidden = 0 AND t.consent_public = 1
+      ORDER BY t.created_at DESC, t.id DESC`,
+    [space.id, space.max_visible],
+  );
+  return {
+    space: {
+      slug: space.slug,
+      title: space.title,
+      subtitle: space.subtitle,
+      themeCode: space.theme_code,
+      brandColor: space.brand_color,
+      logoUrl: uploadUrl(space.logo_path),
+    },
+    testimonials: rows.map((r) => ({
+      name: r.name,
+      jobTitle: r.job_title,
+      company: r.company,
+      photoUrl: uploadUrl(r.photo_path),
+      rating: r.rating,
+      body: r.body,
+      edited: r.edited_at !== null,
+      createdAt: r.created_at,
+    })),
   };
 }

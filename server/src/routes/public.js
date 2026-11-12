@@ -2,12 +2,13 @@
 // No login and no cookie: customers never have accounts.
 //   GET  /api/public/spaces/:slug               display data for the collection page
 //   POST /api/public/spaces/:slug/testimonials  multipart: "data" (JSON) + optional "photo"
+//   GET  /api/public/spaces/:slug/wall          Wall of Love (M4, E48)
 import { Router } from 'express';
 import multer from 'multer';
 import { HttpError, notFound, validationError } from '../lib/http.js';
 import { MAX_IMAGE_BYTES } from '../lib/uploads.js';
 import { slugProblem } from '../services/spaces.js';
-import { getPublicSpace, submitTestimonial } from '../services/testimonials.js';
+import { getPublicSpace, getPublicWall, submitTestimonial } from '../services/testimonials.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -32,6 +33,11 @@ export function createPublicRouter(limits) {
 
   router.get('/spaces/:slug', requireValidSlug, async (req, res) => {
     res.json({ space: await getPublicSpace(req.params.slug) });
+  });
+
+  // E48: Wall of Love — eligible testimonials only, no private data. No rate limit (E51).
+  router.get('/spaces/:slug/wall', requireValidSlug, async (req, res) => {
+    res.json(await getPublicWall(req.params.slug));
   });
 
   router.post('/spaces/:slug/testimonials', requireValidSlug, (req, res, next) => {
