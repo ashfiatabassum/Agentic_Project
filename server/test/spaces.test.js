@@ -75,7 +75,7 @@ test('create, read, list, update, and delete a space', async () => {
   const list = await client.get('/api/spaces');
   assert.equal(list.status, 200);
   assert.deepEqual(list.body.spaces.map((s) => s.id), [space.id]);
-  assert.deepEqual(list.body.usage, { plan: 'free', planName: 'Free', spacesUsed: 1, spacesMax: 3 });
+  assert.deepEqual(list.body.usage, { plan: 'free', planName: 'Free', spacesUsed: 1, spacesMax: 3, maxVisiblePerSpace: 100 });
 
   const updated = await client.put(`/api/spaces/${space.id}`, {
     ...input, title: 'Acme Bakery & Café', themeCode: 'warm', fields: { ...input.fields, company: 'required' },
