@@ -116,7 +116,7 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 **Goal:** an owner can sign up, log in, see their dashboard, and create / edit / delete spaces with questions, customer-field settings, theme, brand colour, logo, and a public link — all owner-isolated and limit-enforced on the server. (The customer side comes in M3.)
 **Requirements covered:** FR-01 (fully, PRD §10), FR-02, FR-03 (settings only), FR-04, FR-12 (space limit).
 **Branch:** `feature/m2-auth-spaces`, merged into `main` through a pull request when "Done when" passes (see `CLAUDE.md` → Git workflow). Built in a **fresh Claude Code session** so the formatting hook runs.
-**Status:** plan approved 12 November 2026 (E0–E13). **Implemented and verified on the branch (12 November 2026), not yet committed:** the developer checks everything by hand first; commit, push, and PR only after the developer confirms.
+**Status:** plan approved 12 November 2026 (E0–E13); E14–E18 confirmed and the whole branch checked by hand by the developer (12 November 2026); E19–E20 added at the developer's request. Merged into `main` by pull request (details below).
 
 ### Decisions (E0–E13) — approved
 
@@ -137,7 +137,7 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 | E12 | Client building blocks | `AuthContext` (calls `/api/auth/me` once), one `api()` fetch helper (JSON, error shape, 401 → login redirect), plain React state for forms; no data-fetching library. Tailwind, labelled inputs, keyboard-usable controls. |
 | E13 | "Space created" page | Shows the public link `http://localhost:5173/s/<slug>` with Copy, plus "Edit space" and "Go to dashboard". (The link opens a page that arrives in M3; until then it shows "Coming soon".) |
 
-### Decisions made during implementation (E14–E18) — for the developer to confirm
+
 
 Small choices the PRD and E0–E13 did not settle; raised by the `requirements-reviewer` run as "behaviour not in the PRD".
 
@@ -175,8 +175,8 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] E19: landing page at `/` (sections above), plan constants file `client/src/lib/plans.js`, route change, shared logo mark `components/Logo.jsx`
 - [x] E20: redesigned sign in / sign up (two-column 960 px card, 48 px / 16 px fields, show/hide password, loading spinner) and matching private header
 - [x] Verify E19–E20: build OK; server tests 42/42; Playwright MCP at 1440×900 and 1024×768 (no horizontal scroll) — all four feature tabs by mouse and keyboard (Arrow keys, End, wrap-around), sign-up validation errors, password toggle, sign up → dashboard, landing shows "Go to dashboard" when signed in, log out, `/spaces/new` → login `?next` → wrong password "Invalid email or password" → correct login returns to `/spaces/new`; console shows only the expected 400/401 API responses, no JavaScript errors; screenshots in `docs/screenshots/m2-landing-*`, `m2-signup-*`, `m2-login-*`; reviewed with `review-react-ui` (#10: 2 fixed, 1 deferred) and `vercel-react-best-practices` (#11: 2 fixed)
-- [ ] **Developer manual check** of the whole M2 branch
-- [ ] Open a pull request `feature/m2-auth-spaces` → `main` (summary, checks run, known gaps); merge after "Done when" passes; record PR link and merge commit; delete the branch
+- [x] **Developer manual check** of the whole M2 branch (landing page, sign up / log in, dashboard, space form) — done by the developer, 12 November 2026
+- [ ] Open a pull request `feature/m2-auth-spaces` → `main` (summary, checks run, known gaps); merge after "Done when" passes; record PR link and merge commit. Branch deletion postponed by the developer (delete later).
 
 ### Done when
 
@@ -185,7 +185,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] Another owner gets 404 for every space endpoint of someone else (tested: `spaces.test.js`; also in the browser)
 - [x] The 4th space on Free is refused even under concurrent requests (tested through the real service and the API)
 - [x] Hook observed firing on a real edit; skill and subagent findings fixed or recorded
-- [ ] `npm run build` succeeds ✔; no secrets or uploaded files committed — `server/uploads/`, `server/.env*`, and `.playwright-mcp/` are ignored on the working tree; re-check `git status` at commit time
+- [x] `npm run build` succeeds; no secrets or uploaded files committed — `server/uploads/`, `server/.env*`, and `.playwright-mcp/` ignored (verified with `git status --ignored` before the M2 commits)
 
 ### Risks
 
