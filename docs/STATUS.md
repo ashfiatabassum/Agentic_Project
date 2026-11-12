@@ -1,7 +1,7 @@
 # Project status and next handoff
 
 **Updated:** 12 November 2026
-**Phase:** M0–M2 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`). **M3 (public form + inbox) implemented, reviewed, and browser-verified on `feature/m3-public-form-inbox`** — waiting for the developer's manual check, then PR and merge.
+**Phase:** M0–M3 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`; M3 merged by [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2), `76a39c8`). Next: plan M4.
 
 ## Decisions made
 
@@ -18,14 +18,14 @@
 - **M1 data model and migrations** — 9 migrations + runner with checksums and a named lock; `migrate`, `db:reset` (guarded), `seed`; test database `testimonial_mvp_test`; **19/19 tests pass** (schema, password, concurrency incl. 1,000 hard cap, health). Dev DB `testimonial_mvp` migrated and seeded (demo owner `demo@example.com` / `demo-password`).
 
 - **M2 auth and spaces + landing page** — merged (PR #1). 42 tests at merge.
-- **M3 public form and inbox (branch, not merged yet)** — public collection page `/s/:slug` (theme, colour, logo, fields per mode, rating, answers, photo, two unchecked consents, thank-you), submission with accept but lock, the 1,000 hard cap under concurrency, two rate limits; owner inbox (favourites first, filters, search, detail, locked banner); dashboard inbox links and counts. **68/68 tests**, build OK, Playwright journey passed. Reviews: 4 skills + 3 subagents; all findings fixed or recorded as E34–E37.
+- **M3 public form and inbox** — merged (PR #2, `76a39c8`; 68/68 tests and build OK on `main`). public collection page `/s/:slug` (theme, colour, logo, fields per mode, rating, answers, photo, two unchecked consents, thank-you), submission with accept but lock, the 1,000 hard cap under concurrency, two rate limits; owner inbox (favourites first, filters, search, detail, locked banner); dashboard inbox links and counts. **68/68 tests**, build OK, Playwright journey passed. Reviews: 4 skills + 3 subagents; all findings fixed or recorded as E34–E37.
 
 ## Next actions
 
 Milestones and their tasks live in [`plan.md`](../plan.md).
 
 1. ✅ Done: developer checked M2 by hand and confirmed E14–E18; [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) merged (`efe21f0`). Branch `feature/m2-auth-spaces` kept for now; delete it later (`git branch -d feature/m2-auth-spaces` and `git push origin --delete feature/m2-auth-spaces`).
-2. ✅ Done: developer checked M3 by hand and confirmed E34–E38. Next: push, PR, merge (Claude).
+2. ✅ Done: developer checked M3 by hand and confirmed E34–E38; [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2) merged (`76a39c8`). Branch `feature/m3-public-form-inbox` kept for now; delete it later together with the M2 branch.
 3. Next milestone after the merge: plan **M4 — moderation + Wall of Love** (edit, hide, favourite, wall, delete; public wall page).
 4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
@@ -35,18 +35,17 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 | Feature | Planned | Implemented | Verified | Notes |
 | --- | :---: | :---: | :---: | --- |
 | Data model and migrations | Yes | Yes | Yes | M1; 19/19 tests |
-| Authentication | Yes (PRD §10) | Yes (uncommitted) | Yes | M2; 13 API tests + browser |
-| Spaces, fields, themes, logo | Yes (PRD §11) | Yes (uncommitted) | Yes (settings) | M2; public display in M3 |
-| Public form and consent | Yes | Yes (branch) | Yes | M3; browser + 26 tests |
-| Inbox and moderation | Yes | Inbox yes (branch); moderation M4 | Inbox yes | M3 inbox; M4 actions |
+| Authentication | Yes (PRD §10) | Yes | Yes | M2; 13 API tests + browser |
+| Spaces, fields, themes, logo | Yes (PRD §11) | Yes | Yes | M2 settings; M3 public display |
+| Public form and consent | Yes | Yes | Yes | M3; browser + 26 tests |
+| Inbox and moderation | Yes | Inbox yes; moderation M4 | Inbox yes | M3 inbox; M4 actions |
 | Wall and embed | Yes | No | No | |
-| Dashboard and quotas | Yes | Partly | Space limit only | M2: space limit + "n of 3" usage; stats M6, testimonial limits M3 |
+| Dashboard and quotas | Yes | Partly | Limits yes; stats no | Space limit (M2) and accept-but-lock testimonial limits + hard cap (M3); stats M6 |
 | Demo billing | Yes | No | No | |
 
 ## Blockers / open questions
 
 - Project Requirements lesson not yet compared with the PRD (PRD is the agreed baseline).
-- M2 waits for the developer's manual check before any commit.
 - Rate limits share one bucket behind a proxy unless `TRUST_PROXY` is set (known limitation, README).
 
 ## Handoff rule

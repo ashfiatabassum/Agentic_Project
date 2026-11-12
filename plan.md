@@ -195,7 +195,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 ---
 
-## M3 — Public form and inbox
+## M3 — Public form and inbox ✅
 
 **Goal:** a customer opens a space's public link without an account, fills in the configured fields, rating, answers, photo, and consent, submits, and sees the thank-you message; the owner sees it in that space's inbox with search, filters, and full details. Plan limits use **accept but lock**; the 1,000 hard cap holds under concurrency.
 **Requirements covered:** FR-05, FR-06, FR-07, FR-12 (testimonial limits), FR-03 (fields shown to customers), FR-04 (theme, colour, logo on the public page); PRD §5 rules (consent, accept but lock, rate limits, no private data in public APIs).
@@ -241,7 +241,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - [x] Playwright MCP: logged-out customer on a warm and a dark space (fields per mode, unchecked consents, errors, photo upload, thank-you focus, 375 px); owner inbox order, filter, search, detail; locked banner after 101 testimonials; second owner → 404; review fixes re-checked ("form changed" message, Clear rating, "Testimonial sent"); screenshots `docs/screenshots/m3-*`
 - [x] Docs: verification.md (FR-03 – FR-07, FR-12 rows, skill/subagent/issue logs), STATUS, this plan
 - [x] **Developer manual check** of the whole M3 branch (public form, inbox, breadcrumbs) and E34–E38 confirmed — done by the developer, 12 November 2026
-- [ ] Push, PR to `main`, merge, record PR and merge commit
+- [x] Push, PR to `main`, merge, record PR and merge commit — [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2), merge commit `76a39c8`; on `main`: 68/68 tests, build OK
 
 ### Done when
 

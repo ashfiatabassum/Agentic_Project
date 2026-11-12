@@ -108,6 +108,7 @@ Available project subagents (read-only; tools `Read, Grep, Glob, Bash`, with Bas
 | Milestone | Pull request | Branch | Merge commit | Checks on merged `main` | Branch deleted |
 | --- | --- | --- | --- | --- | --- |
 | M2 auth and spaces (+ E19–E20) | [#1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) — merged 2026-11-12 via `gh pr merge --merge` | `feature/m2-auth-spaces` (10 commits) | `efe21f0` | `npm test` 42/42, `npm run build` OK | Not yet (developer will delete later) |
+| M3 public form and inbox (+ E34–E38) | [#2](https://github.com/ashfiatabassum/Agentic_Project/pull/2) — merged 2026-11-12 via `gh pr merge --merge` | `feature/m3-public-form-inbox` (10 commits) | `76a39c8` | `npm test` 68/68, `npm run build` OK | Not yet (developer will delete later) |
 
 ## Parallel work and integration
 
