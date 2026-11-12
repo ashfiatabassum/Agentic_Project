@@ -15,11 +15,16 @@ function SpaceCard({ space }) {
         <h2 className="min-w-0 flex-1 truncate text-lg font-semibold text-slate-900">{space.title}</h2>
       </div>
       <p className="mt-3 truncate text-sm text-slate-600" title={url}>{url}</p>
+      {/* Same meaning as the inbox header: visible testimonials, plus locked ones (E31, as revised). */}
       <p className="mt-1 text-sm text-slate-600">
-        {space.testimonialCount} {space.testimonialCount === 1 ? 'testimonial' : 'testimonials'}
+        {space.testimonialCount - space.lockedCount} {space.testimonialCount - space.lockedCount === 1 ? 'testimonial' : 'testimonials'}
+        {space.lockedCount > 0 && <span className="font-medium text-amber-700"> · {space.lockedCount} locked</span>}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link to={`/spaces/${space.id}/edit`} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+        <Link to={`/spaces/${space.id}/inbox`} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+          Inbox<span className="sr-only"> for {space.title}</span>
+        </Link>
+        <Link to={`/spaces/${space.id}/edit`} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
           Edit<span className="sr-only"> {space.title}</span>
         </Link>
         <CopyButton text={url} />

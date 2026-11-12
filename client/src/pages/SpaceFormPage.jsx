@@ -1,8 +1,9 @@
 // /spaces/new and /spaces/:id/edit (E2): one page — Basics, Public link, Questions,
 // Customer fields, Look — with one Save button and inline errors from the server.
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { api } from '../lib/api.js';
+import Breadcrumbs, { SPACES_CRUMB, spaceCrumb } from '../components/Breadcrumbs.jsx';
 import { Alert, Button, TextInput, publicSpaceUrl } from '../components/ui.jsx';
 import DeleteSpaceDialog from '../spaces/DeleteSpaceDialog.jsx';
 import FieldModes from '../spaces/FieldModes.jsx';
@@ -113,11 +114,9 @@ function SpaceForm({ initialSpace }) {
 
   return (
     <>
+      <Breadcrumbs items={isEdit ? [SPACES_CRUMB, spaceCrumb(space), { label: 'Edit' }] : [SPACES_CRUMB, { label: 'New space' }]} />
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-semibold text-slate-900">{isEdit ? `Edit “${space.title}”` : 'Create a space'}</h1>
-          <Link to="/dashboard" className="text-sm font-medium text-indigo-700 underline">Back to dashboard</Link>
-        </div>
+        <h1 className="text-2xl font-semibold text-slate-900">{isEdit ? `Edit “${space.title}”` : 'Create a space'}</h1>
 
         <div ref={summaryRef} tabIndex={-1} className="focus:outline-none">
           <Alert>{formError}</Alert>
@@ -238,12 +237,19 @@ export function EditSpacePage() {
 
   if (state.error) {
     return (
-      <div className="space-y-4">
+      <div>
+        <Breadcrumbs items={[SPACES_CRUMB, { label: 'Edit' }]} />
         <Alert>{state.error}</Alert>
-        <Link to="/dashboard" className="text-sm font-medium text-indigo-700 underline">Back to dashboard</Link>
       </div>
     );
   }
-  if (!state.space) return <p role="status" className="text-slate-500">Loading space…</p>;
+  if (!state.space) {
+    return (
+      <div>
+        <Breadcrumbs items={[SPACES_CRUMB, { label: 'Edit' }]} />
+        <p role="status" className="text-slate-500">Loading space…</p>
+      </div>
+    );
+  }
   return <SpaceForm key={state.space.id} initialSpace={state.space} />;
 }
