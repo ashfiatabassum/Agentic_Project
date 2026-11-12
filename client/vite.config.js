@@ -14,6 +14,11 @@ export default defineConfig({
         target: 'http://localhost:4000',
         changeOrigin: false,
       },
+      // Uploaded logos (and later photos) are served by Express.
+      '/uploads': {
+        target: 'http://localhost:4000',
+        changeOrigin: false,
+      },
     },
   },
 });
