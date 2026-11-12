@@ -2,10 +2,12 @@
 // owner's accent; its text colour is chosen for contrast so any brand colour stays readable.
 import { THEME_PREVIEW } from '../spaces/spaceForm.js';
 
+// starEmpty is a neutral grey so unrated stars never look like filled amber ones
+// (the warm theme's orange border colour did, found in the M3 browser check).
 const SURFACES = {
-  light: { card: '#FFFFFF', page: '#F8FAFC', border: '#CBD5E1', input: '#FFFFFF', danger: '#B91C1C' },
-  dark: { card: '#1E293B', page: '#0F172A', border: '#475569', input: '#0F172A', danger: '#FCA5A5' },
-  warm: { card: '#FFFFFF', page: '#FFF7ED', border: '#FDBA74', input: '#FFFFFF', danger: '#B91C1C' },
+  light: { card: '#FFFFFF', page: '#F8FAFC', border: '#CBD5E1', input: '#FFFFFF', danger: '#B91C1C', starEmpty: '#CBD5E1' },
+  dark: { card: '#1E293B', page: '#0F172A', border: '#475569', input: '#0F172A', danger: '#FCA5A5', starEmpty: '#475569' },
+  warm: { card: '#FFFFFF', page: '#FFF7ED', border: '#FDBA74', input: '#FFFFFF', danger: '#B91C1C', starEmpty: '#D6D3D1' },
 };
 
 /** Relative luminance (WCAG) of a #RRGGBB colour. */
@@ -36,6 +38,7 @@ export function themeVars(themeCode, brandColor) {
     '--border': surface.border,
     '--input': surface.input,
     '--danger': surface.danger,
+    '--star-empty': surface.starEmpty,
     '--brand': brand,
     '--on-brand': textOn(brand),
   };

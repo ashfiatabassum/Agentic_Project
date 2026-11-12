@@ -60,7 +60,7 @@ function RatingInput({ value, onChange, required, error }) {
         {[1, 2, 3, 4, 5].map((n) => (
           <label key={n} className="cursor-pointer rounded-md p-0.5 has-focus-visible:ring-2 has-focus-visible:ring-[var(--brand)]" onMouseEnter={() => setHover(n)}>
             <input type="radio" name={name} value={n} checked={value === n} onChange={() => onChange(n)} className="sr-only" aria-label={`${n} ${n === 1 ? 'star' : 'stars'}`} />
-            <svg viewBox="0 0 20 20" aria-hidden="true" className={`h-9 w-9 transition-colors ${n <= shown ? 'text-amber-400' : 'text-[var(--border)]'}`} fill="currentColor">
+            <svg viewBox="0 0 20 20" aria-hidden="true" className={`h-9 w-9 transition-colors ${n <= shown ? 'text-amber-400' : 'text-[var(--star-empty)]'}`} fill="currentColor">
               <path d={STAR_PATH} />
             </svg>
           </label>
