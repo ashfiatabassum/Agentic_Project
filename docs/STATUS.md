@@ -22,6 +22,10 @@
 
 - **M4 moderation + Wall of Love** — on `feature/m4-moderation-wall` (plan commit `99b2244` on `main`). Owner-only edit, hide, favourite, wall, delete (locked → 403; wall needs public consent and not hidden; deleting frees capacity); public wall `/s/:slug/wall` with only eligible testimonials and no private data. **85/85 tests** (17 new), build OK, Playwright journey passed (`docs/screenshots/m4-*`). Reviews: 4 skills (log #16–19) + 3 subagents (log #7–9); fixes applied, the rest recorded as E54.
 
+- **M5 embed builder** — session B, branch `feature/m5-embed` in the worktree `C:\Agentic_Project-m5` (parallel with M6 in session A). Builder `/spaces/:id/embed` (layout grid/list/carousel, light/dark, background or transparent, logo header, animation; live preview; copyable responsive iframe snippet with auto height) and public `/embed/:slug` reusing the wall API and card. Only `/embed/*` may be framed. 9 new tests; build OK; Playwright check on a cross-origin host page passed (`docs/screenshots/m5-*`). Reviews: 2 skills (log #20–21) + 3 subagents (log #10–12); fixes applied, the rest recorded as E73–E76. Developer reviewed it and confirmed E73–E76 (12 November 2026); committed on the branch.
+
+- **M5 full-suite checkpoint (session B takeover, 12 November 2026)** — developer approved running the shared-DB tests; `npm.cmd test` passed **94/94 tests, 0 failures**, including all 9 embed tests. Only `testimonial_mvp_test` was reset by pretest; no dev reset or reseed was run. Manual review of E73–E76 and explicit commit approval remain pending.
+
 ## Next actions
 
 Milestones and their tasks live in [`plan.md`](../plan.md).
@@ -30,6 +34,7 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 2. ✅ Done: developer checked M3 by hand and confirmed E34–E38; [PR #2](https://github.com/ashfiatabassum/Agentic_Project/pull/2) merged (`76a39c8`). Branch `feature/m3-public-form-inbox` kept for now; delete it later together with the M2 branch.
 3. ✅ Developer checked M4 by hand and confirmed E54 (12 November 2026). [PR #3](https://github.com/ashfiatabassum/Agentic_Project/pull/3) merged (`d0149db`; 85/85 tests and build OK on `main`). Branch `feature/m4-moderation-wall` kept for now; delete it later with the M2/M3 branches.
 6. After M4 merges: M5 (embed) and M6 (dashboard) in parallel sessions per plan.md E53.
+7. M5 (session B): ✅ developer reviewed M5, confirmed E73–E76 and approved the commits (12 November 2026). Next: merge `main` (M6 merged first), tests, then PR and merge per E53 (the branch that merges second merges `main` first). After M6 merges, add the dashboard link to the builder.
 4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
 
@@ -42,7 +47,7 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 | Spaces, fields, themes, logo | Yes (PRD §11) | Yes | Yes | M2 settings; M3 public display |
 | Public form and consent | Yes | Yes | Yes | M3; browser + 26 tests |
 | Inbox and moderation | Yes | Yes | Yes | M3 + M4 merged |
-| Wall and embed | Yes | Wall yes; embed no | Wall yes | Embed is M5 |
+| Wall and embed | Yes | Wall yes; embed on branch | Wall yes; embed on branch | Embed: M5 on `feature/m5-embed` (session B), not merged |
 | Dashboard and quotas | Yes | Partly | Limits yes; stats no | Space limit (M2) and accept-but-lock testimonial limits + hard cap (M3); stats M6 |
 | Demo billing | Yes | No | No | |
 
