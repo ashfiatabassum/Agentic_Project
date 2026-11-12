@@ -1,7 +1,7 @@
 # Project status and next handoff
 
 **Updated:** 12 November 2026
-**Phase:** M0, M1, and **M2 (auth and spaces + landing page) complete** — merged into `main` by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) (merge commit `efe21f0`). Next: plan M3 (public form + inbox).
+**Phase:** M0–M2 complete (M2 merged by [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1), `efe21f0`). **M3 (public form + inbox) implemented, reviewed, and browser-verified on `feature/m3-public-form-inbox`** — waiting for the developer's manual check, then PR and merge.
 
 ## Decisions made
 
@@ -17,15 +17,16 @@
 - **M0 setup** — starter pushed (`6a07d99`); server scaffold (`ead4f0a`); client scaffold (`081f12f`); verified commands (`d6e2ca4`); Playwright MCP and hook loaded in a fresh session (`884217d`, `38f335d`).
 - **M1 data model and migrations** — 9 migrations + runner with checksums and a named lock; `migrate`, `db:reset` (guarded), `seed`; test database `testimonial_mvp_test`; **19/19 tests pass** (schema, password, concurrency incl. 1,000 hard cap, health). Dev DB `testimonial_mvp` migrated and seeded (demo owner `demo@example.com` / `demo-password`).
 
-- **M2 auth and spaces (uncommitted)** — sign up / log in / log out with server-side sessions and rate limits; spaces with questions, customer fields, theme, colour, logo, slug, delete; dashboard; space limit enforced under concurrency. **42/42 tests**, build OK, Playwright journey passed (two owners, 375 px, error states). Hook observed firing. Reviews: 4 skills + 3 subagents, findings fixed or recorded (`docs/verification.md`).
+- **M2 auth and spaces + landing page** — merged (PR #1). 42 tests at merge.
+- **M3 public form and inbox (branch, not merged yet)** — public collection page `/s/:slug` (theme, colour, logo, fields per mode, rating, answers, photo, two unchecked consents, thank-you), submission with accept but lock, the 1,000 hard cap under concurrency, two rate limits; owner inbox (favourites first, filters, search, detail, locked banner); dashboard inbox links and counts. **68/68 tests**, build OK, Playwright journey passed. Reviews: 4 skills + 3 subagents; all findings fixed or recorded as E34–E37.
 
 ## Next actions
 
 Milestones and their tasks live in [`plan.md`](../plan.md).
 
 1. ✅ Done: developer checked M2 by hand and confirmed E14–E18; [PR #1](https://github.com/ashfiatabassum/Agentic_Project/pull/1) merged (`efe21f0`). Branch `feature/m2-auth-spaces` kept for now; delete it later (`git branch -d feature/m2-auth-spaces` and `git push origin --delete feature/m2-auth-spaces`).
-2. Next: plan M3 on a new branch `feature/m3-public-form-inbox` from `main`.
-3. Plan **M3 — public form + inbox** (accept but lock, hard cap, photo upload; move the submit locking pattern from `concurrency.test.js` into a service). Re-check the `answeredQuestions` EXPLAIN with real answers.
+2. **Developer:** check M3 by hand — open a space's public link in a private/incognito window (no login), submit a testimonial, then see it in the owner inbox; confirm decisions **E34–E37** in `plan.md`. Then push, PR, merge.
+3. Next milestone after the merge: plan **M4 — moderation + Wall of Love** (edit, hide, favourite, wall, delete; public wall page).
 4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
 
@@ -36,8 +37,8 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 | Data model and migrations | Yes | Yes | Yes | M1; 19/19 tests |
 | Authentication | Yes (PRD §10) | Yes (uncommitted) | Yes | M2; 13 API tests + browser |
 | Spaces, fields, themes, logo | Yes (PRD §11) | Yes (uncommitted) | Yes (settings) | M2; public display in M3 |
-| Public form and consent | Yes | No | No | Tables ready |
-| Inbox and moderation | Yes | No | No | Tables ready |
+| Public form and consent | Yes | Yes (branch) | Yes | M3; browser + 26 tests |
+| Inbox and moderation | Yes | Inbox yes (branch); moderation M4 | Inbox yes | M3 inbox; M4 actions |
 | Wall and embed | Yes | No | No | |
 | Dashboard and quotas | Yes | Partly | Space limit only | M2: space limit + "n of 3" usage; stats M6, testimonial limits M3 |
 | Demo billing | Yes | No | No | |

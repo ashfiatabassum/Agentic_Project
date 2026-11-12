@@ -199,7 +199,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 **Goal:** a customer opens a space's public link without an account, fills in the configured fields, rating, answers, photo, and consent, submits, and sees the thank-you message; the owner sees it in that space's inbox with search, filters, and full details. Plan limits use **accept but lock**; the 1,000 hard cap holds under concurrency.
 **Requirements covered:** FR-05, FR-06, FR-07, FR-12 (testimonial limits), FR-03 (fields shown to customers), FR-04 (theme, colour, logo on the public page); PRD §5 rules (consent, accept but lock, rate limits, no private data in public APIs).
-**Branch:** `feature/m3-public-form-inbox` from `main`, merged by pull request (CLAUDE.md → Git workflow). Moderation actions (edit, hide, favourite, wall, delete) are **M4**.
+**Branch:** `feature/m3-public-form-inbox` from `main`, merged by pull request (CLAUDE.md → Git workflow). **Status:** implemented, reviewed, and browser-verified on the branch (12 November 2026); waiting for the developer's manual check. Moderation actions (edit, hide, favourite, wall, delete) are **M4**.
 
 ### Decisions (E21–E33) — approved by the developer, 12 November 2026
 
@@ -219,27 +219,36 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 | E32 | Photo URLs | Stored as `photos/<random>.ext`, served read-only from `/uploads/photos/` (random 128-bit names). Customer email is never sent to public pages. |
 | E33 | Demo data | `npm run seed` unchanged; for the locked case, tests and Playwright create rows directly in the test database. |
 
+### Decisions added after the M3 reviews (E34–E37) — for the developer to confirm
+
+| # | Decision | Chosen |
+| --- | --- | --- |
+| E34 | Hardening the public endpoints (security-reviewer, code-reviewer) | A slug that breaks the slug rules (padded, uppercase, non-ASCII) is 404 **before** rate limits and queries. The service finds the space and validates the data **before** checking or saving a photo; a photo sent to a space with photos off is ignored entirely. Malformed uploads → 400. A question removed while a customer was answering → 400 "This form changed… reload". |
+| E35 | Second rate limit | Besides E25 (5 per IP per space per 10 min, given back for invalid/unknown requests), **every** public submit attempt from an IP counts toward **30 per 10 minutes**, never given back, so invalid uploads cannot be repeated without limit. |
+| E36 | E21 as implemented | The public read does **not** include the thank-you message; it is returned by the submit response (only needed after submitting). Questions are returned in display order (array order) as `{ id, text }`; `slug` is included. |
+| E37 | Counts and wording | Dashboard and inbox both show **visible** testimonials plus "· N locked" (E31 revised). Thank-you heading "Testimonial sent" (the default message already starts with "Thank you!"); "Send another testimonial" is a button. Optional ratings have a "Clear rating" button. |
+
 ### Tasks
 
-- [ ] Create branch `feature/m3-public-form-inbox` from up-to-date `main`
-- [ ] Server: public space read (E21) and submit (E22–E25) — public routes module, multipart parsing with `multer` (photo only), validation, submit service with the space-row lock and hard cap, photo save/cleanup, rate limiter
-- [ ] Server: inbox list + detail (E28–E30) with owner scoping, visibility ranking (`ROW_NUMBER()` per data-model.md), filters, escaped search; dashboard counts (E31)
-- [ ] Client: public page `/s/:slug` with theming, fields, questions, photo, consents, errors, in-place thank-you (E26–E27); replaces the "Coming soon" placeholder
-- [ ] Client: inbox page with filters, search, list, detail panel, locked banner; dashboard card link and counts
-- [ ] Tests (API, `testimonial_mvp_test`): public read exposes no private fields; required/optional/off fields per mode; consent defaults false; answers only for active questions with snapshot; photo type by content, > 2 MB, cleanup on rejection; 101st submission on Free → saved and locked; **4 concurrent submits at 999 → exactly 1,000 through the real service**; 429 after 5; inbox order (favourites first), each filter, search with `%` and `_`, locked count, detail 403 for locked; **owner B → 404** on owner A's inbox and detail
-- [ ] Reviews: `review-react-ui` + `vercel-react-best-practices` (client); `review-mysql-model` + `mysql` (queries); subagents `code-reviewer` + `security-reviewer` + `requirements-reviewer`
-- [ ] Playwright MCP: owner sets fields (rating required, photo optional, a question) → **logged-out** customer opens the link, sees theme/colour/logo, submits with errors then correctly with a photo → thank-you → owner inbox shows it first in the list, search and filters work, detail shows answers and consents; 375 px public form; locked banner after filling the Free limit in the test DB; second owner gets 404 on the inbox URL
-- [ ] Docs: verification.md (FR-03 – FR-07, FR-12 rows, skill/subagent logs), README, STATUS, this plan
+- [x] Create branch `feature/m3-public-form-inbox` from up-to-date `main`
+- [x] Server: public space read (E21) and submit (E22–E25) — `routes/public.js`, `services/testimonials.js`, multer for the photo, validation per field mode, space-row lock and hard cap, photo save/cleanup, rate limits (+ E34–E35 after review) — `900ec9e`, `c50187d`
+- [x] Server: inbox list + detail (E28–E30) with owner scoping, `ROW_NUMBER()` visibility, filters, escaped search; dashboard `lockedCount` (E31) — `900ec9e`, `5e272da`
+- [x] Client: public page `/s/:slug` with theming, fields, questions, photo, consents, errors, in-place thank-you (E26–E27) — `ea89295`, `8577c08`, `a4b3b6e`, `2b0272d`
+- [x] Client: inbox page with filters, search, list, detail panel, locked banner; dashboard card link and counts — `ea89295`, `2b0272d`
+- [x] Tests: 26 new M3 tests (16 first, 10 after the reviews) — **68/68** total, including 4 concurrent submits at 999 → exactly 1,000 through the real service, owner isolation, every filter, literal `%`/`_` search, locked 403, padded/non-ASCII slugs, the per-IP attempt limit, deactivated/foreign/duplicate questions
+- [x] Reviews: `review-react-ui`, `vercel-react-best-practices`, `mysql` (EXPLAIN ANALYZE, 1 fix), `review-mysql-model` — Skill usage log #12–#15; subagents `security-reviewer`, `code-reviewer`, `requirements-reviewer` — Subagent usage log #4–#6; all findings fixed or recorded (E34–E37)
+- [x] Playwright MCP: logged-out customer on a warm and a dark space (fields per mode, unchecked consents, errors, photo upload, thank-you focus, 375 px); owner inbox order, filter, search, detail; locked banner after 101 testimonials; second owner → 404; review fixes re-checked ("form changed" message, Clear rating, "Testimonial sent"); screenshots `docs/screenshots/m3-*`
+- [x] Docs: verification.md (FR-03 – FR-07, FR-12 rows, skill/subagent/issue logs), STATUS, this plan
 - [ ] Developer manual check; then push, PR to `main`, merge, record PR and merge commit
 
 ### Done when
 
-- [ ] All server tests pass (M1 + M2 + new M3 tests)
-- [ ] Playwright journey above passes, screenshots saved in `docs/screenshots/m3-*`
-- [ ] Public API responses contain no email, owner, plan, or locked data (tested)
-- [ ] Hard cap holds under concurrent submissions through the real service (tested)
-- [ ] Skill and subagent findings fixed or recorded
-- [ ] `npm run build` succeeds; no uploaded photos or secrets committed
+- [x] All server tests pass (M1 + M2 + new M3 tests)
+- [x] Playwright journey above passes, screenshots saved in `docs/screenshots/m3-*`
+- [x] Public API responses contain no email, owner, plan, or locked data (tested)
+- [x] Hard cap holds under concurrent submissions through the real service (tested)
+- [x] Skill and subagent findings fixed or recorded
+- [x] `npm run build` succeeds; no uploaded photos or secrets committed
 
 ### Risks
 
