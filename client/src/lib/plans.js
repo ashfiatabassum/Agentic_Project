@@ -1,22 +1,41 @@
-// Plan facts shown on the landing page (E19). They mirror the `plans` seed rows in
-// server/db/migrations/001_create_plans.sql; the server enforces the real limits.
-// If a GET /api/plans endpoint is added later (billing milestone), read from it instead.
-export const PLANS = [
-  {
-    code: 'free',
-    name: 'Free',
-    price: '৳0',
-    period: 'forever',
-    blurb: 'Everything you need to start collecting.',
-    features: ['3 spaces', '100 testimonials per space', 'Wall of Love and embed', 'Custom questions and fields'],
-  },
-  {
-    code: 'paid',
-    name: 'Paid',
-    price: '৳999',
-    period: 'per month',
-    blurb: 'For growing brands with more to show.',
-    features: ['25 spaces', '1,000 testimonials per space', 'Everything in Free', 'Unlocks testimonials past the Free limit'],
-    note: 'Demo — no real payment',
-  },
-];
+// Plans for the landing and billing pages (M7, E101). Limits, prices and currency come from
+// GET /api/plans (the `plans` table), never from a copy in the client; only the marketing text
+// below lives here. The server enforces the real limits.
+import { useEffect, useState } from 'react';
+import { formatPrice } from '../dashboard/chartMath.js';
+import { api } from './api.js';
+
+const COPY = {
+  free: { blurb: 'Everything you need to start collecting.', extras: ['Wall of Love and embed', 'Custom questions and fields'] },
+  paid: { blurb: 'For growing brands with more to show.', extras: ['Everything in Free', 'Unlocks testimonials past the Free limit'], note: 'Demo — no real payment' },
+};
+
+const number = (n) => n.toLocaleString('en');
+
+/** Display fields for one plan from the API. */
+export function planView(plan) {
+  const copy = COPY[plan.code] ?? { blurb: '', extras: [] };
+  return {
+    ...plan,
+    price: formatPrice(plan.priceMinor, plan.currency),
+    period: plan.interval ? `per ${plan.interval}` : 'forever',
+    blurb: copy.blurb,
+    note: copy.note,
+    features: [`${number(plan.maxSpaces)} spaces`, `${number(plan.maxVisiblePerSpace)} visible testimonials per space`, ...copy.extras],
+  };
+}
+
+/** { status: 'loading' | 'ready' | 'error', plans } from GET /api/plans (public). */
+export function usePlans() {
+  const [state, setState] = useState({ status: 'loading', plans: [] });
+  useEffect(() => {
+    const controller = new AbortController();
+    api('/plans', { signal: controller.signal })
+      .then((data) => setState({ status: 'ready', plans: data.plans.map(planView) }))
+      .catch((error) => {
+        if (error.name !== 'AbortError') setState({ status: 'error', plans: [] });
+      });
+    return () => controller.abort();
+  }, []);
+  return state;
+}

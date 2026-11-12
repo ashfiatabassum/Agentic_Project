@@ -222,7 +222,7 @@ test('Free owners cannot create a 4th space, even with 4 concurrent requests', a
   const results = await Promise.all(Array.from({ length: 4 }, () => client.post('/api/spaces', validSpace())));
   const statuses = results.map((r) => r.status).sort();
   assert.deepEqual(statuses, [201, 201, 403, 403]);
-  assert.equal(results.find((r) => r.status === 403).body.error, 'Your Free plan allows 3 spaces. Delete a space to make room.');
+  assert.equal(results.find((r) => r.status === 403).body.error, 'Your Free plan allows 3 spaces. Upgrade to Paid (demo) or delete a space to make room.');
 
   const [[{ n }]] = await getPool().execute('SELECT COUNT(*) AS n FROM spaces WHERE owner_id = ?', [user.id]);
   assert.equal(Number(n), 3);

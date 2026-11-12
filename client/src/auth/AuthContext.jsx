@@ -54,7 +54,10 @@ export function AuthProvider({ children }) {
     setState({ status: 'ready', user: null, signedOut: true });
   }, []);
 
-  const value = useMemo(() => ({ ...state, login, register, logout }), [state, login, register, logout]);
+  // E106: after a simulated upgrade the server returns the updated user; the header uses it at once.
+  const updateUser = useCallback((user) => setState({ status: 'ready', user }), []);
+
+  const value = useMemo(() => ({ ...state, login, register, logout, updateUser }), [state, login, register, logout, updateUser]);
   return <AuthContext value={value}>{children}</AuthContext>;
 }
 

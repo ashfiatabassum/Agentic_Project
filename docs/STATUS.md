@@ -38,7 +38,8 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 6. After M4 merges: M5 (embed) and M6 (dashboard) in parallel sessions per plan.md E53.
 7. M5 (session B): ✅ developer reviewed M5, confirmed E73–E76 and approved the commits (12 November 2026). `main` (with M6) merged into the branch (`3ebf40f`): `npm test` 108/108, client tests 5/5, build OK. Next: push, PR and merge (with the developer's OK) (the branch that merges second merges `main` first). After M6 merges, add the dashboard link to the builder.
 8. ✅ M5 merged by [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5) (`393c4bd`, second of the pair); dashboard "Embed" link merged by [PR #6](https://github.com/ashfiatabassum/Agentic_Project/pull/6) (`b19466c`). ✅ Integration check on `main`: 108/108 server tests, 5/5 client tests, build OK, and the browser flow submission → dashboard → wall → embed on another origin. Next: plan M7 (billing demo). Branches `feature/m5-embed` and `feature/m6-dashboard-stats` kept for now; delete later with the others.
-4. Known gap from the E19 review: landing-page pricing is a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
+9. M7 billing demo on `feature/m7-billing-demo` (from `main` at `4a67405`): `GET /api/plans`, simulated upgrade (one event per upgrade, row lock), billing page with demo banner and history, success page, entry points; 119/119 server tests, 5/5 client tests, build OK; Playwright journey passed (`docs/screenshots/m7-*`); 4 skills + 3 subagents (Skill log #26–29, Subagent log #15–17); fixes and accepted items in E113. Developer checked it and confirmed E113 (12 November 2026); committed. Next: M8 (final check, README, recording, reflection).
+4. ✅ Fixed in M7 (E101), on the branch: landing-page pricing now reads `GET /api/plans`. Was: a copy of the plans seed rows (`client/src/lib/plans.js`); M7 billing adds `GET /api/plans` and switches the page to it.
 5. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
 
 ## Progress table
@@ -52,7 +53,7 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 | Inbox and moderation | Yes | Yes | Yes | M3 + M4 merged |
 | Wall and embed | Yes | Yes | Yes | Wall M4; embed M5 (session B, [PR #5](https://github.com/ashfiatabassum/Agentic_Project/pull/5)) |
 | Dashboard and quotas | Yes | Partly | Limits yes; stats no | Space limit (M2) and accept-but-lock testimonial limits + hard cap (M3); stats M6 |
-| Demo billing | Yes | No | No | |
+| Demo billing | Yes | Yes (branch) | Yes (branch) | M7 on `feature/m7-billing-demo`, not merged; simulation only, no downgrade (D6) |
 
 ## Blockers / open questions
 

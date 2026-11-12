@@ -104,9 +104,9 @@ export function UpgradeCard({ plan, upgradeTo, totals }) {
       <p className="mt-2 text-sm text-indigo-900">
         <strong>{upgradeTo.name} (demo)</strong>: {price}{upgradeTo.interval ? ` per ${upgradeTo.interval}` : ''} · {upgradeTo.maxSpaces} spaces · {number(upgradeTo.maxVisiblePerSpace)} testimonials per space.
       </p>
-      <p className="mt-3 inline-block rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-indigo-800 ring-1 ring-indigo-200">
-        Upgrade (demo) is coming soon
-      </p>
+      <Link to="/billing" className="mt-3 inline-block rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2">
+        Upgrade (demo)
+      </Link>
     </section>
   );
 }

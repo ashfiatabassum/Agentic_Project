@@ -17,6 +17,9 @@ import WallPage from './pages/WallPage.jsx';
 // M5 pages are loaded on demand (E66), so they are not part of the main bundle.
 const EmbedBuilderPage = lazy(() => import('./pages/EmbedBuilderPage.jsx'));
 const EmbedPage = lazy(() => import('./pages/EmbedPage.jsx'));
+// M7 billing demo (E104–E105).
+const BillingPage = lazy(() => import('./pages/BillingPage.jsx').then((m) => ({ default: m.BillingPage })));
+const BillingSuccessPage = lazy(() => import('./pages/BillingPage.jsx').then((m) => ({ default: m.BillingSuccessPage })));
 const loading = <p role="status" className="p-4 text-sm text-slate-500">Loading…</p>;
 
 export default function App() {
@@ -34,6 +37,8 @@ export default function App() {
           <Route path="/spaces/:id/edit" element={<EditSpacePage />} />
           <Route path="/spaces/:id/created" element={<SpaceCreatedPage />} />
           <Route path="/spaces/:id/inbox" element={<InboxPage />} />
+          <Route path="/billing" element={<Suspense fallback={loading}><BillingPage /></Suspense>} />
+          <Route path="/billing/success" element={<Suspense fallback={loading}><BillingSuccessPage /></Suspense>} />
           <Route path="/spaces/:id/embed" element={<Suspense fallback={loading}><EmbedBuilderPage /></Suspense>} />
         </Route>
       </Route>

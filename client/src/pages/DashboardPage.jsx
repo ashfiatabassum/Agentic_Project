@@ -155,7 +155,8 @@ export default function DashboardPage() {
                   Create space
                 </button>
                 <p id="space-limit-note" className="mt-1 max-w-xs text-xs text-slate-600">
-                  You have reached the {usage.planName} plan limit of {usage.spacesMax} spaces. Delete a space to make room.
+                  You have reached the {usage.planName} plan limit of {usage.spacesMax} spaces.{' '}
+                  {state.data?.upgradeTo ? <><Link to="/billing" className="font-medium text-indigo-700 underline">Upgrade to Paid (demo)</Link> or delete a space to make room.</> : 'Delete a space to make room.'}
                 </p>
               </>
             ) : (
