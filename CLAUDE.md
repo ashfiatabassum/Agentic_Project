@@ -45,13 +45,13 @@ Local environment notes:
 
 ## Feature loop: plan → implement → verify
 
-The assignment requires at least two agentic tools. This project's **core tools** (use on every applicable feature): the PostToolUse formatting **hook**, the **skills** (`grill-me`/`grilling`, `mysql` + `review-mysql-model`, `vercel-react-best-practices` + `review-react-ui`), and **Playwright MCP**. **Optional tools** (use when they add value, and record when used): the `requirements-reviewer` **subagent** and **OpenSpec**.
+The assignment requires at least two agentic tools. This project's **core tools** (use on every applicable feature): the PostToolUse formatting **hook**, the **skills** (`grill-me`/`grilling`, `mysql` + `review-mysql-model`, `vercel-react-best-practices` + `review-react-ui`), and **Playwright MCP**. **Subagents** (read-only reviewers in `.claude/agents/`): `code-reviewer`, `security-reviewer`, and `requirements-reviewer`. **Optional:** **OpenSpec**.
 
 1. **Plan:** explore and write a short plan for one small feature (plan mode, or an OpenSpec change if used). Confirm acceptance criteria, owner isolation, consent, and quota cases before writing feature code.
 2. **Implement** a coherent vertical slice. Run checks and exercise its acceptance criteria.
 3. **Review with skills** (see "Skills: which to use" below): for React work use `review-react-ui` plus `vercel-react-best-practices`; for schema/query work use `review-mysql-model` plus `mysql`. Record findings and fixes.
 4. **Verify in the browser** with Playwright MCP, including unauthenticated submission and owner-only views. Record actual results in `docs/verification.md`.
-5. Optionally run the `requirements-reviewer` subagent for an independent review and correct real gaps.
+5. **Review with subagents** before marking a milestone done: `code-reviewer` on every milestone; `security-reviewer` whenever auth, sessions, uploads, public pages, embeds, or billing changed; `requirements-reviewer` to check behaviour against the PRD. Verify each finding before fixing it, fix real gaps, and record every run in **Subagent usage log** in `docs/verification.md` (findings and what was fixed, rejected, or deferred).
 6. Confirm the PostToolUse formatting hook fires on an applicable code edit. Hook output does not replace tests.
 7. Update `docs/STATUS.md`, `docs/verification.md`, and README status. Mark plan/OpenSpec tasks complete only after verification.
 

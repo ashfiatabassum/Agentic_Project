@@ -63,6 +63,22 @@ Installed project skills (not uses):
 
 Both external skills were read and scanned before use: guidance text only, no scripts. Known caveats are recorded in `CLAUDE.md` → "Skills: which to use".
 
+## Subagent usage log
+
+One row **per subagent run**, added in the same session. Record only runs that actually happened, and what was done with each finding (fixed, rejected with reason, or deferred).
+
+| # | Date | Subagent | Milestone / scope | What it reviewed | Findings (by severity) | Fixed / rejected / deferred | Commit |
+| ---: | --- | --- | --- | --- | --- | --- | --- |
+| | | | | | | | |
+
+Available project subagents (read-only; tools `Read, Grep, Glob, Bash`, with Bash limited to read-only commands by their instructions):
+
+| Subagent | Purpose | File |
+| --- | --- | --- |
+| `requirements-reviewer` | Implemented behaviour vs PRD and plan: acceptance criteria, consent, quotas, journeys | `.claude/agents/requirements-reviewer.md` |
+| `code-reviewer` | Correctness, error handling, validation, SQL and React quality, tests | `.claude/agents/code-reviewer.md` |
+| `security-reviewer` | Owner isolation, sessions, CSRF, public data exposure, XSS, uploads, rate limits, secrets, billing simulation | `.claude/agents/security-reviewer.md` |
+
 ## Parallel work and integration
 
 - Independent task:
