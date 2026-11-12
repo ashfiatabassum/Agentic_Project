@@ -60,8 +60,10 @@ The public collection link must point to a reachable host when demonstrating fro
 | Responsive iframe embed | Implemented and verified (M5, built in a parallel session, merged in PR #5): builder `/spaces/:id/embed` (linked from each dashboard card) with live preview and copyable snippet; public `/embed/:slug` |
 | Dashboard statistics | Implemented and verified (M6, merged in PR #4) |
 | Free/Paid quota enforcement | Space limit implemented and verified (M2, concurrency-safe); testimonial limits with accept but lock and the 1,000 hard cap implemented and verified (M3); deleting frees capacity (M4) |
-| Demo upgrade and saved plan state | Planned |
+| Demo upgrade and saved plan state | Implemented and verified on branch `feature/m7-billing-demo` (M7), not merged yet: billing page with a clearly labelled simulated upgrade (no card fields, nothing charged), success page, billing history; Paid persists after logging out and in; limits rise and locked testimonials unlock |
 | Real Stripe checkout and webhooks | Not in this demo scope |
+
+**Not done for billing (by design, data-model D6):** real payments (Stripe or any provider), card details, downgrading, plan expiry, invoices. The upgrade is a simulation and is labelled as one everywhere.
 
 **Not done for login (out of scope, PRD §10 Q10):** email verification, password reset, change password or email, delete account, "remember me", social login, multi-owner teams, and an admin role.
 

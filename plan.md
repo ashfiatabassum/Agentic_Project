@@ -145,7 +145,7 @@ Small choices the PRD and E0–E13 did not settle; raised by the `requirements-r
 | # | Decision | Chosen |
 | --- | --- | --- |
 | E14 | Versions | `react-router` **7.18.5** (8.x needs React ≥ 19.2.7; the project pins 19.1.10). `multer` 2.5.0. |
-| E15 | Status codes and messages | Space limit → **403** "Your Free plan allows 3 spaces. Delete a space to make room." (upgrade wording comes with billing in M7). Taken slug → **409** with `fields.slug`. Removed/stale question id → 400 "This question no longer exists. Reload the page." |
+| E15 | Status codes and messages | Space limit → **403** "Your Free plan allows 3 spaces. Delete a space to make room." (upgrade wording comes with billing in M7). Taken slug → **409** with `fields.slug`. Removed/stale question id → 400 "This question no longer exists. Reload the page." | *(Superseded for Free owners by E107 in M7: "… Upgrade to Paid (demo) or delete a space to make room.")*
 | E16 | Rate-limit counting | Sign-up: only well-formed attempts count toward 5/hour (typos do not lock a person out). Login: counted **before** checking the password and given back on success, so only failures count and parallel requests cannot slip past. `Retry-After` header on 429. Optional `TRUST_PROXY` for deployments behind a proxy. |
 | E17 | CSRF exceptions | Logout accepts any content type ("always succeeds", Q13; a cross-site logout carries no cookie). Logo upload is multipart and also requires the header `X-Requested-With: fetch`. |
 | E18 | API details | `PUT /api/spaces/:id` replaces all settings (missing `fields`/`questions` = off/none). Brand colour stored uppercase. `GET /api/themes` is public (lookup data). `Cache-Control: no-store` on the API; uploads served with `nosniff`. Client: `/` → `/dashboard`, a 404 page, and a "could not reach the server" screen when `/me` fails for a reason other than 401. |
@@ -214,7 +214,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 | E27 | Thank-you | Shown in place on `/s/:slug` after success (heading receives focus), with the space's message or the default "Thank you! Your testimonial has been sent." and a "Send another" link. Unknown slug → friendly "This page doesn't exist". |
 | E28 | Inbox route and API | Page `/spaces/:id/inbox`, linked from each dashboard card ("Inbox · 12"). `GET /api/spaces/:id/testimonials?filter=&q=` returns summaries of **visible** testimonials only, **favourites first, then newest** (FR-08). Filters: All, Favourites, On wall, Hidden, Public consent. Search: name, company, testimonial text (`LIKE`, with `%`/`_` escaped). No pagination (≤ 1,000 per space). Another owner → 404. |
 | E29 | Testimonial detail | Click a row → detail panel from `GET /api/spaces/:id/testimonials/:tid`: full text, rating, photo, name, email, job title, company, social link, both consents, answers with their question snapshots, received date. A locked testimonial → `403 { locked: true }` with no content. |
-| E30 | Locked banner | Inbox response includes `counts: { visible, locked, total }` and the plan limit. If `locked > 0`: banner "12 testimonials are locked on the Free plan — upgrade to see them." (The upgrade button arrives with billing in M7; until then the banner explains it.) |
+| E30 | Locked banner | Inbox response includes `counts: { visible, locked, total }` and the plan limit. If `locked > 0`: banner "12 testimonials are locked on the Free plan — upgrade to see them." (The upgrade button arrives with billing in M7; until then the banner explains it.) | *(M7, E107: the banner now links to `/billing`.)*
 | E31 | Dashboard counts | Space cards show "12 testimonials" and, if any, "· 3 locked". |
 | E32 | Photo URLs | Stored as `photos/<random>.ext`, served read-only from `/uploads/photos/` (random 128-bit names). Customer email is never sent to public pages. |
 | E33 | Demo data | `npm run seed` unchanged; for the locked case, tests and Playwright create rows directly in the test database. |
@@ -405,7 +405,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 **Goal:** the dashboard shows the owner's totals (spaces, testimonials, locked), current plan and usage against its limits, recent activity, and a daily submissions graph with a 7/30-day switch. Free owners see an upgrade prompt. All numbers are calculated on the server for the signed-in owner only.
 **Requirements covered:** FR-11, FR-12 (limits shown in the UI); PRD §11.7 and §11.8; data-model D8 (recent activity derived, not stored).
 **Branch:** `feature/m6-dashboard-stats` from `main`, built in **session A** (this folder) while session B builds M5 in the worktree (E53, E55). Merged by pull request. **Status:** implemented, reviewed, and browser-verified on the branch (12 November 2026); checked by hand by the developer and E92–E93 confirmed (12 November 2026); merged by [PR #4](https://github.com/ashfiatabassum/Agentic_Project/pull/4), merge commit `139d025` (first of the M5/M6 pair; M5 must merge `main` into its branch and re-test before merging, E53).
-**Schema:** no migration. The graph uses the existing index `(space_id, created_at)`; `billing_events` exists (M1) and stays empty until M7.
+**Schema:** no migration. The graph uses the existing index `(space_id, created_at)`; `billing_events` exists (M1) and stays empty until M7. *(M7 now writes billing events.)*
 
 ### Decisions (E80–E91) — approved by the developer, 12 November 2026
 
@@ -419,7 +419,7 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 | E85 | 7/30 selector | Two toggle buttons (`aria-pressed`), default 7 days. The choice is kept in the URL (`/dashboard?range=30`), so refresh and Back keep it. Switching refetches only the stats, and the old chart stays visible (dimmed) while loading. |
 | E86 | Chart | A hand-made, responsive **SVG bar chart**, with no chart library (no new dependency, small bundle). Built with the `dataviz` skill's guidance. Each bar has a tooltip and focus label ("12 Nov: 3 testimonials"). The SVG has a text summary for screen readers ("12 testimonials in the last 7 days; busiest day 10 Nov with 4"), plus a "Show as table" toggle. With 30 days at 375 px: thin bars, and only some date labels shown. |
 | E87 | Recent activity | The latest 10 events across the owner's spaces, newest first (`UNION ALL`, D8): "New testimonial from Nadia Rahman in Acme Bakery", "Space Night Owl Studio created", and billing events (none until M7). **A locked testimonial is shown without its name:** "A new testimonial arrived in Night Owl Studio (locked on the Free plan)". Each event links to the space's inbox, with relative time ("2 hours ago") and the exact time on hover. |
-| E88 | Upgrade prompt | Free owners see a card: "You're on the Free plan: 3 spaces, 100 visible testimonials per space. Paid (demo, ৳999/month): 25 spaces, 1,000 per space." When `locked > 0` it says how many are locked. The upgrade button arrives with billing in M7; until then the card says "Upgrade (demo) is coming soon", as the inbox banner does. Paid owners don't see it. |
+| E88 | Upgrade prompt | Free owners see a card: "You're on the Free plan: 3 spaces, 100 visible testimonials per space. Paid (demo, ৳999/month): 25 spaces, 1,000 per space." When `locked > 0` it says how many are locked. The upgrade button arrives with billing in M7; until then the card says "Upgrade (demo) is coming soon", as the inbox banner does. Paid owners don't see it. | *(M7, E107: the card's "coming soon" is now an "Upgrade (demo)" link to `/billing`.)*
 | E89 | Page layout | Order: heading + plan line → 4 stat tiles (Spaces x/y, Testimonials, Locked, Received in range) → graph with the selector → recent activity + upgrade card side by side (stacked on mobile) → "Your spaces" cards (unchanged plus E82). Works down to 375 px. Empty states: a new owner sees zeros, an empty graph with "No testimonials yet", and "No activity yet". |
 | E90 | Errors | If the stats request fails, the space cards still show and the stats area shows an error with "Try again" (one failure does not blank the dashboard). |
 | E91 | Demo data | Seed unchanged. Tests insert rows with chosen `created_at` values (including near-midnight times) directly in the test database. |
@@ -472,6 +472,66 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 - **Slow queries for owners with many testimonials** (up to 25 spaces × 1,000). Mitigation: owner-scoped joins on the `(space_id, created_at)` index, with EXPLAIN ANALYZE in the mysql review.
 - **Merge conflict with M5.** M5 may add an "Embed" link to the dashboard space cards. Expected and small; resolved by the branch that merges second.
 - **The chart is not accessible.** Mitigations: a text summary, a table toggle, focusable bars, and colour that is not the only cue.
+
+---
+
+## M7 — Billing demo
+
+**Goal:** a Free owner opens a billing page, compares Free (৳0) and Paid (৳999/month), and runs a **clearly labelled simulated** upgrade. No card fields, no real payment, never called Stripe. Afterwards the owner sees a success page and Paid on billing, the header, and the dashboard; the new limits apply at once (locked testimonials unlock, more spaces allowed); the plan survives logging out and in; each upgrade is recorded as an event.
+**Requirements covered:** FR-13; FR-12 (limits rise on upgrade); PRD §5 (upgrading raises *N* and unlocks automatically); PRD §11.9 items 1–5; data-model D6 (no downgrade, no expiry) and `billing_events`; closes the E19 known gap (landing-page prices copied from the seed).
+**Branch:** `feature/m7-billing-demo` from `main` at `4a67405`, merged by pull request. **Status:** decisions E100–E112 approved by the developer (12 November 2026). Implemented, reviewed, and browser-verified on the branch; E113 (after the reviews) confirmed by the developer (manual check, 12 November 2026).
+**Schema:** no migration. `plans` (seeded) and `billing_events` (append-only, `CHECK (is_simulated = 1)`) exist since M1.
+
+### Decisions (E100–E112) — approved by the developer, 12 November 2026
+
+| # | Decision | Proposed |
+| --- | --- | --- |
+| E100 | Decision numbers | M7 uses E100 onward (M5 used E60–E79, M6 E80–E99). |
+| E101 | Plans API | `GET /api/plans` — public, no login: `[{ code, name, priceMinor, currency, interval, maxSpaces, maxVisiblePerSpace }]` from the `plans` table, ordered by `sort_order`. The landing page and the billing page read it; `client/src/lib/plans.js` (the copied seed rows) is removed. |
+| E102 | Simulated upgrade API | `POST /api/billing/simulate-upgrade` with an empty JSON body (JSON-only CSRF guard + `SameSite=Lax`; owner session required → 401). The target is always `paid`; the client never sends a plan, price, or amount, and any body fields are ignored. One transaction: lock the owner's `users` row (`FOR UPDATE`); if already Paid → **409** "You are already on the Paid plan (demo)" and nothing is written; otherwise `UPDATE users SET plan_code = 'paid'` and `INSERT billing_events` (`upgrade_simulated`, `free` → `paid`, `amount_minor` and `currency` copied from the `plans` row, `is_simulated = 1`). Returns `201 { user, event }`. Two parallel requests → exactly one event (row lock). |
+| E103 | Billing read API | `GET /api/billing` (owner only) → `{ plan, upgradeTo, events }`; `events` are this owner's billing events, newest first: date, from → to plan names, amount, "simulated". Never another owner's events. |
+| E104 | Billing page `/billing` | Owner page (breadcrumb "Your spaces › Billing"). A **demo banner** at the top: "Demo billing — this is a simulation. No payment is taken and no card details are asked for." Two plan cards from E101 with limits and price ("৳999 per month (demo price)"); the current plan is marked. Free owners get **"Simulate upgrade to Paid"**, which opens a confirmation dialog ("This is a simulation. Nothing will be charged. Your plan changes to Paid (demo) right away." Cancel / "Confirm simulated upgrade"; focus trapped, Escape cancels (except while the request runs), like the delete dialogs). Paid owners see "You're on Paid (demo)" and no button (D6: no downgrade). Below: **billing history** (E103), empty state "No billing events yet". The page has **no payment inputs at all**, and the word "Stripe" appears nowhere. |
+| E105 | Success page `/billing/success` | Shown after a successful simulated upgrade: "You're on the Paid plan (demo)", the new limits (25 spaces, 1,000 visible per space), "No money was charged", and how many testimonials were unlocked (from the dashboard totals), with links to the dashboard and billing. Opening it while on Free redirects to `/billing`. |
+| E106 | Session state after upgrading | The upgrade response's `user` updates `AuthContext`, so the header badge shows "Paid plan" immediately. The server always reads the plan from the database per request (never from the client), so limits change at once and survive logging out and in. |
+| E107 | Entry points and wording | The header plan badge links to `/billing`. The dashboard upgrade card's "coming soon" becomes an "Upgrade (demo)" link to `/billing`. The inbox locked banner links to `/billing`. The space-limit message becomes "Your Free plan allows 3 spaces. Upgrade to Paid (demo) or delete a space to make room." (server message + a link on the dashboard). Recent activity already shows "Upgraded to the Paid plan (demo)" (M6). |
+| E108 | Unlocking | No extra code: locked status is computed from the plan limit (data-model), so after the upgrade a space with 101 testimonials shows 101 visible, 0 locked (tested). |
+| E109 | No downgrade, no expiry (D6) | Paid stays Paid. For testing, `npm run db:reset` (test/dev databases only) returns to Free. Recorded in the README as "not done". |
+| E110 | Tests (`server/test/billing.test.js`) | `GET /api/plans` shape and order, no login needed; upgrade: 401 logged out, 415 non-JSON, 201 sets `paid` and writes exactly one event with `is_simulated = 1`, `amount_minor = 99900`, `BDT`; body fields like `{ plan: 'free', amount: 0 }` are ignored; second upgrade → 409 and no new event; **5 parallel upgrades → exactly one event**; after upgrading, 101 rows → 0 locked, and a 4th space can be created; `/api/auth/me` returns `paid`; `GET /api/billing` returns only the owner's events and 401 when logged out. |
+| E111 | Playwright MCP (snapshots for checks, screenshots only for evidence `docs/screenshots/m7-*`) | A new test owner on Free with 101 testimonials in one space (created directly in the dev DB for this owner only): dashboard shows locked + upgrade card → billing: demo banner visible, no `<input>` on the page, no "Stripe" → Cancel keeps Free → Confirm → success page → header "Paid plan", dashboard 0 locked and "of 25" spaces, activity "Upgraded…", billing history shows one simulated event → log out and in → still Paid; a second owner is still Free. Keyboard: dialog focus trap and Escape. 375 px: no sideways scroll. The demo owner (`demo@example.com`) stays on Free for the recording. |
+| E112 | Reviews and demo data | Each run once at the end: `review-react-ui` + `vercel-react-best-practices`; `review-mysql-model` + `mysql` (the upgrade transaction and row lock); subagents `code-reviewer` (the only one that runs tests), `security-reviewer` (billing simulation, CSRF, auth), `requirements-reviewer` (FR-13). Dev DB: no reset; the test owner created for E111 is recorded in `docs/verification.md`. |
+
+### Decisions after the M7 reviews (E113) — confirmed by the developer, 12 November 2026
+
+| # | Decision | Chosen |
+| --- | --- | --- |
+| E113 | Review fixes and accepted items (Subagent log #15–17, Skill log #26–29) | **Fixed:** (a) after a 409 (already upgraded, e.g. in another tab) the billing page reloads the owner (`/api/auth/me`) and billing data, so the header and page show Paid instead of a stale Free page; (b) Escape cannot close the confirmation dialog while the request is running; (c) `GET /api/billing` also returns the plan list, so the page makes one request fewer; (d) the success page shows an error instead of "Loading…" forever if its read fails; (e) tests added: a 409 leaves the plan Paid, `GET /api/billing` includes the plans, a Paid owner at 25 spaces is told to delete one. **Accepted:** no rate limit on the upgrade endpoint (one PK row lock per call on the caller's own row, nothing written after the first upgrade); the success page's "N unlocked" number comes from navigation state (display only, Paid users only; lost on reload); the billing page reads the whole dashboard payload for the locked count (one owner request on a rarely visited page); if `GET /api/plans` fails, the landing page shows "Prices could not be loaded" instead of stale copied prices. |
+
+### Tasks
+
+- [x] Developer approved E100–E112 (12 November 2026)
+- [x] Server: `GET /api/plans` (E101), `POST /api/billing/simulate-upgrade` and `GET /api/billing` (E102–E103), space-limit message (E107)
+- [x] Client: `/billing` page with demo banner, plan cards, confirmation dialog, history; `/billing/success`; AuthContext update; entry points (badge, dashboard card, inbox banner, limit message); landing page reads `GET /api/plans` (E101, E104–E107)
+- [x] Tests: `server/test/billing.test.js` (E110, + E113e): 11 tests; full suite **119/119**, client tests 5/5
+- [x] Reviews (E112): 4 skills (Skill log #26–29), 3 subagents (Subagent log #15–17); fixes and accepted items in E113
+- [x] Playwright MCP journey (E111) plus the E113a two-tab check; screenshots `docs/screenshots/m7-billing-confirm`, `m7-billing-success`, `m7-billing-paid`
+- [x] Docs: verification.md (FR-13 row; skill, subagent, issue logs), STATUS, README, data-model (M7 query notes), this plan
+- [x] **Developer manual check** of the M7 branch; E113 confirmed (12 November 2026)
+- [ ] Push, PR to `main`, merge, record the PR and merge commit
+
+### Done when
+
+- [x] All server tests and client tests pass (M1–M6 + new M7 tests): 119/119 and 5/5
+- [x] Exactly one event per upgrade, even under parallel requests; the client cannot choose the plan or the amount (tested)
+- [x] The billing pages show the demo label, contain no payment inputs, and never mention Stripe (checked in the browser)
+- [x] Paid persists after logging out and in; limits rise and locked testimonials unlock (tested and seen)
+- [x] Skill and subagent findings fixed or recorded (E113)
+- [x] `npm run build` succeeds; no secrets committed (staged file lists checked for each M7 commit)
+
+### Risks
+
+- **The simulation could look like a real payment.** Mitigations: the demo banner on both pages, "(demo)" next to every price and button, no inputs, a confirmation dialog that says nothing is charged, and the database `CHECK (is_simulated = 1)`.
+- **Double upgrades (double click, two tabs).** Mitigation: the owner row lock and the 409; a parallel-request test.
+- **Stale plan in the browser.** Mitigation: the server is the authority on every request; the header updates from the upgrade response.
 
 ---
 
