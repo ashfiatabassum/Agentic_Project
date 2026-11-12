@@ -15,8 +15,9 @@ function SpaceCard({ space }) {
         <h2 className="min-w-0 flex-1 truncate text-lg font-semibold text-slate-900">{space.title}</h2>
       </div>
       <p className="mt-3 truncate text-sm text-slate-600" title={url}>{url}</p>
+      {/* Same meaning as the inbox header: visible testimonials, plus locked ones (E31, as revised). */}
       <p className="mt-1 text-sm text-slate-600">
-        {space.testimonialCount} {space.testimonialCount === 1 ? 'testimonial' : 'testimonials'}
+        {space.testimonialCount - space.lockedCount} {space.testimonialCount - space.lockedCount === 1 ? 'testimonial' : 'testimonials'}
         {space.lockedCount > 0 && <span className="font-medium text-amber-700"> · {space.lockedCount} locked</span>}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">

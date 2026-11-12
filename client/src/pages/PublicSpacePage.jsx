@@ -66,9 +66,29 @@ function RatingInput({ value, onChange, required, error }) {
           </label>
         ))}
       </div>
+      {!required && value ? (
+        // Radio buttons cannot be unchecked, so an optional rating gets an explicit clear button.
+        <button type="button" onClick={() => onChange(null)} className="mt-1 text-sm text-[var(--muted)] underline underline-offset-2 hover:text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
+          Clear rating
+        </button>
+      ) : null}
       {error && <p id={`${name}-error`} className="mt-1 text-sm text-[var(--danger)]">{error}</p>}
     </fieldset>
   );
+}
+
+const CUSTOMER_FIELD_KEYS = ['jobTitle', 'company', 'socialLink', 'photo', 'rating'];
+const FORM_CHANGED = 'This form changed while you were filling it in. Reload the page and try again.';
+
+/**
+ * Message for the summary alert after a 400. Errors the page cannot show next to a field —
+ * `form`, or a field the owner switched on after this page loaded — are surfaced here.
+ */
+function summaryFor(fieldErrors, fields) {
+  if (fieldErrors.form) return fieldErrors.form;
+  const shown = (key) => ['name', 'email', 'body', 'answers'].includes(key) || key.startsWith('answers.')
+    || (CUSTOMER_FIELD_KEYS.includes(key) && fields[key] !== 'off');
+  return Object.keys(fieldErrors).some((key) => !shown(key)) ? FORM_CHANGED : 'Please check the highlighted fields.';
 }
 
 function PhotoInput({ file, onChange, required, error, onClientError }) {
@@ -231,8 +251,9 @@ export default function PublicSpacePage() {
       setThankYou(result.thankYouMessage);
       setForm(emptyForm());
     } catch (error) {
-      setErrors(error.fields ?? {});
-      setFormError(error.status === 400 ? 'Please check the highlighted fields.' : error.message);
+      const fieldErrors = error.fields ?? {};
+      setErrors(fieldErrors);
+      setFormError(error.status === 400 ? summaryFor(fieldErrors, fields) : error.message);
       setPending(false);
       const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
@@ -257,7 +278,8 @@ export default function PublicSpacePage() {
         {header}
         <section className="mt-8 rounded-2xl bg-[var(--card)] p-8 text-center shadow-sm ring-1 ring-[var(--border)] sm:p-12">
           <span aria-hidden="true" className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--brand)] text-2xl text-[var(--on-brand)]">✓</span>
-          <h2 ref={thankYouRef} tabIndex={-1} className="mt-5 text-2xl font-semibold focus:outline-none">Thank you!</h2>
+          {/* Neutral heading so the default message ("Thank you! …") is not repeated twice. */}
+          <h2 ref={thankYouRef} tabIndex={-1} className="mt-5 text-2xl font-semibold focus:outline-none">Testimonial sent</h2>
           <p className="mt-3 whitespace-pre-line text-lg text-[var(--muted)]">{thankYou}</p>
           <button type="button" onClick={() => { setThankYou(''); setErrors({}); }} className="mt-8 rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text)] underline underline-offset-4 hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
             Send another testimonial

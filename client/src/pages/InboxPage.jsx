@@ -103,7 +103,8 @@ function Detail({ spaceId, testimonialId }) {
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Details</h3>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
           <dt className="text-slate-500">Email</dt>
-          <dd className="break-all text-slate-900"><a className="text-indigo-700 underline" href={`mailto:${t.email}`}>{t.email}</a></dd>
+          {/* Encoded so an address like "a@b.co?cc=…" cannot add mail headers (security review). */}
+          <dd className="break-all text-slate-900"><a className="text-indigo-700 underline" href={`mailto:${encodeURIComponent(t.email)}`}>{t.email}</a></dd>
           {t.socialLink && (<>
             <dt className="text-slate-500">Link</dt>
             <dd className="break-all"><a className="text-indigo-700 underline" href={t.socialLink} target="_blank" rel="noopener noreferrer nofollow">{t.socialLink}</a></dd>
@@ -121,33 +122,45 @@ function Detail({ spaceId, testimonialId }) {
   );
 }
 
+/** Keyed by space id, so switching spaces starts fresh instead of showing the old space's list. */
 export default function InboxPage() {
   const { id } = useParams();
+  return <Inbox key={id} id={id} />;
+}
+
+function Inbox({ id }) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const q = useDebounced(search.trim(), 300);
-  const [state, setState] = useState({ status: 'loading', data: null, error: '' });
+  const [state, setState] = useState({ status: 'loading', data: null, error: null });
   const [selectedId, setSelectedId] = useState(null);
+  const [attempt, setAttempt] = useState(0); // bumped by "Try again"
 
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ filter });
     if (q) params.set('q', q);
-    setState((s) => ({ ...s, status: s.data ? 'refreshing' : 'loading' }));
+    setState((s) => ({ ...s, status: s.data ? 'refreshing' : 'loading', error: null }));
     api(`/spaces/${id}/testimonials?${params}`, { signal: controller.signal })
-      .then((data) => setState({ status: 'ready', data, error: '' }))
+      .then((data) => setState({ status: 'ready', data, error: null }))
       .catch((error) => {
-        if (error.name !== 'AbortError') setState({ status: 'error', data: null, error: error.message });
+        // A failed refresh keeps the last list on screen and shows an inline error with a retry.
+        if (error.name !== 'AbortError') setState((s) => ({ status: s.data ? 'ready' : 'error', data: s.data, error }));
       });
     return () => controller.abort();
-  }, [id, filter, q]);
+  }, [id, filter, q, attempt]);
 
   if (state.status === 'loading' && !state.data) return <p role="status" className="text-slate-500">Loading inbox…</p>;
   if (state.status === 'error') {
     return (
       <div className="space-y-4">
-        <Alert>{state.error === 'Not found' ? 'This space does not exist or is not yours.' : state.error}</Alert>
-        <Link to="/dashboard" className="text-indigo-700 underline">Back to dashboard</Link>
+        <Alert>{state.error.status === 404 ? 'This space does not exist or is not yours.' : state.error.message}</Alert>
+        <div className="flex gap-4">
+          {state.error.status !== 404 && (
+            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="text-indigo-700 underline">Try again</button>
+          )}
+          <Link to="/dashboard" className="text-indigo-700 underline">Back to dashboard</Link>
+        </div>
       </div>
     );
   }
@@ -180,6 +193,13 @@ export default function InboxPage() {
         <div role="status" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
           <strong>{counts.locked} {counts.locked === 1 ? 'testimonial is' : 'testimonials are'} locked</strong> on the {plan.name} plan, which shows {plan.maxVisible} per space.
           Upgrade to see them — the upgrade option is coming soon. Nothing has been lost: they are saved.
+        </div>
+      )}
+
+      {state.error && (
+        <div role="alert" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-red-50 p-3 text-sm text-red-800 ring-1 ring-red-200">
+          <span>Could not update the list: {state.error.message}</span>
+          <button type="button" onClick={() => setAttempt((n) => n + 1)} className="font-semibold underline">Try again</button>
         </div>
       )}
 
