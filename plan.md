@@ -195,6 +195,59 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 ---
 
+## M3 — Public form and inbox
+
+**Goal:** a customer opens a space's public link without an account, fills in the configured fields, rating, answers, photo, and consent, submits, and sees the thank-you message; the owner sees it in that space's inbox with search, filters, and full details. Plan limits use **accept but lock**; the 1,000 hard cap holds under concurrency.
+**Requirements covered:** FR-05, FR-06, FR-07, FR-12 (testimonial limits), FR-03 (fields shown to customers), FR-04 (theme, colour, logo on the public page); PRD §5 rules (consent, accept but lock, rate limits, no private data in public APIs).
+**Branch:** `feature/m3-public-form-inbox` from `main`, merged by pull request (CLAUDE.md → Git workflow). Moderation actions (edit, hide, favourite, wall, delete) are **M4**.
+
+### Decisions (E21–E33) — approved by the developer, 12 November 2026
+
+| # | Decision | Default |
+| --- | --- | --- |
+| E21 | Public read API | `GET /api/public/spaces/:slug` → only display data: name, subtitle, prompt, thank-you message, theme, brand colour, logo URL, the five field modes, active questions (`id`, `text`, order). Never owner, email, counts, or plan. Unknown slug → 404. No login, no cookie needed. |
+| E22 | Submit API | `POST /api/public/spaces/:slug/testimonials` as **one `multipart/form-data` request**: a `data` part (JSON with the fields, rating, answers, consents) plus an optional `photo` part. Added to the JSON-only guard's multipart allow-list (no session is involved, so CSRF does not apply). `201 { thankYouMessage }`. |
+| E23 | Validation (server is the authority) | Name 1–100 and email (valid, ≤ 254) always required; job title / company (≤ 100), social link (`http`/`https`, ≤ 300), rating (integer 1–5), photo — each **ignored when off, optional or required as configured**; testimonial text 1–2,000; each answer ≤ 1,000, **answers optional**, only for this space's active questions (question text stored as `question_snapshot`); both consents default `false`. One error shape `{ error, fields }`. |
+| E24 | Limits and locking | Photo checked by magic bytes and saved **before** the transaction (≤ 2 MB). Then `withTransaction`: lock the space row (`FOR UPDATE`), count saved testimonials, **reject at 1,000** (`403` "This page isn't accepting testimonials right now", photo file deleted), else insert testimonial + answers. Past the plan limit (100 Free) it is **saved and locked** — the customer still sees the normal thank-you. The submit pattern moves from `concurrency.test.js` into this service. |
+| E25 | Rate limit | In memory: **5 submissions per IP per space per 10 minutes** → 429 with `Retry-After`. |
+| E26 | Public page `/s/:slug` | Uses the space's theme (light / dark / warm), brand colour for buttons and focus rings, and logo. Order: rating → testimonial text → questions → name, email → job title, company, social link → photo (preview, change, remove) → two consent checkboxes (unchecked) → submit. "(optional)" on optional fields. Inline errors; the browser checks size/type early but the server decides. **Responsive down to 375 px** (customers are often on phones). |
+| E27 | Thank-you | Shown in place on `/s/:slug` after success (heading receives focus), with the space's message or the default "Thank you! Your testimonial has been sent." and a "Send another" link. Unknown slug → friendly "This page doesn't exist". |
+| E28 | Inbox route and API | Page `/spaces/:id/inbox`, linked from each dashboard card ("Inbox · 12"). `GET /api/spaces/:id/testimonials?filter=&q=` returns summaries of **visible** testimonials only, **favourites first, then newest** (FR-08). Filters: All, Favourites, On wall, Hidden, Public consent. Search: name, company, testimonial text (`LIKE`, with `%`/`_` escaped). No pagination (≤ 1,000 per space). Another owner → 404. |
+| E29 | Testimonial detail | Click a row → detail panel from `GET /api/spaces/:id/testimonials/:tid`: full text, rating, photo, name, email, job title, company, social link, both consents, answers with their question snapshots, received date. A locked testimonial → `403 { locked: true }` with no content. |
+| E30 | Locked banner | Inbox response includes `counts: { visible, locked, total }` and the plan limit. If `locked > 0`: banner "12 testimonials are locked on the Free plan — upgrade to see them." (The upgrade button arrives with billing in M7; until then the banner explains it.) |
+| E31 | Dashboard counts | Space cards show "12 testimonials" and, if any, "· 3 locked". |
+| E32 | Photo URLs | Stored as `photos/<random>.ext`, served read-only from `/uploads/photos/` (random 128-bit names). Customer email is never sent to public pages. |
+| E33 | Demo data | `npm run seed` unchanged; for the locked case, tests and Playwright create rows directly in the test database. |
+
+### Tasks
+
+- [ ] Create branch `feature/m3-public-form-inbox` from up-to-date `main`
+- [ ] Server: public space read (E21) and submit (E22–E25) — public routes module, multipart parsing with `multer` (photo only), validation, submit service with the space-row lock and hard cap, photo save/cleanup, rate limiter
+- [ ] Server: inbox list + detail (E28–E30) with owner scoping, visibility ranking (`ROW_NUMBER()` per data-model.md), filters, escaped search; dashboard counts (E31)
+- [ ] Client: public page `/s/:slug` with theming, fields, questions, photo, consents, errors, in-place thank-you (E26–E27); replaces the "Coming soon" placeholder
+- [ ] Client: inbox page with filters, search, list, detail panel, locked banner; dashboard card link and counts
+- [ ] Tests (API, `testimonial_mvp_test`): public read exposes no private fields; required/optional/off fields per mode; consent defaults false; answers only for active questions with snapshot; photo type by content, > 2 MB, cleanup on rejection; 101st submission on Free → saved and locked; **4 concurrent submits at 999 → exactly 1,000 through the real service**; 429 after 5; inbox order (favourites first), each filter, search with `%` and `_`, locked count, detail 403 for locked; **owner B → 404** on owner A's inbox and detail
+- [ ] Reviews: `review-react-ui` + `vercel-react-best-practices` (client); `review-mysql-model` + `mysql` (queries); subagents `code-reviewer` + `security-reviewer` + `requirements-reviewer`
+- [ ] Playwright MCP: owner sets fields (rating required, photo optional, a question) → **logged-out** customer opens the link, sees theme/colour/logo, submits with errors then correctly with a photo → thank-you → owner inbox shows it first in the list, search and filters work, detail shows answers and consents; 375 px public form; locked banner after filling the Free limit in the test DB; second owner gets 404 on the inbox URL
+- [ ] Docs: verification.md (FR-03 – FR-07, FR-12 rows, skill/subagent logs), README, STATUS, this plan
+- [ ] Developer manual check; then push, PR to `main`, merge, record PR and merge commit
+
+### Done when
+
+- [ ] All server tests pass (M1 + M2 + new M3 tests)
+- [ ] Playwright journey above passes, screenshots saved in `docs/screenshots/m3-*`
+- [ ] Public API responses contain no email, owner, plan, or locked data (tested)
+- [ ] Hard cap holds under concurrent submissions through the real service (tested)
+- [ ] Skill and subagent findings fixed or recorded
+- [ ] `npm run build` succeeds; no uploaded photos or secrets committed
+
+### Risks
+
+- Public, unauthenticated upload endpoint: abuse via large or fake files — size limit enforced while streaming, type by magic bytes, rate limit, cleanup on every failure path.
+- Dark theme and brand colours: keep text contrast readable (check in the browser).
+
+---
+
 ## Roadmap after M2 (E0 approved)
 
 | Milestone | Scope |
