@@ -1,15 +1,20 @@
-// Current owner for the whole app (E12). Calls GET /api/auth/me once on load.
+// Current owner for the whole app (E12). Calls GET /api/auth/me once on load, except on the
+// public embed (/embed/…, E66), which runs inside other sites' iframes and never needs a session.
 import { createContext, use, useCallback, useEffect, useMemo, useState } from 'react';
 import { api, setUnauthorizedHandler } from '../lib/api.js';
 
 const AuthContext = createContext(null);
 
+// Case-insensitive like the router (/Embed/acme renders the embed too).
+const isEmbedPage = () => window.location.pathname.toLowerCase().startsWith('/embed/');
+
 export function AuthProvider({ children }) {
   // status: 'loading' until /me answers, then 'ready' (user is null when signed out), or
   // 'error' when the server could not answer — that is not the same as being signed out.
-  const [state, setState] = useState({ status: 'loading', user: null });
+  const [state, setState] = useState(() => (isEmbedPage() ? { status: 'ready', user: null } : { status: 'loading', user: null }));
 
   useEffect(() => {
+    if (isEmbedPage()) return undefined;
     const controller = new AbortController();
     api('/auth/me', { signal: controller.signal })
       .then((data) => setState({ status: 'ready', user: data.user }))
