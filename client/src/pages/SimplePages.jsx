@@ -21,7 +21,7 @@ export function NotFoundPage() {
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="text-center">
         <h1 className="text-2xl font-semibold text-slate-900">Page not found</h1>
-        <Link to="/dashboard" className="mt-4 inline-block text-indigo-700 underline">Go to dashboard</Link>
+        <Link to="/" className="mt-4 inline-block text-indigo-700 underline">Go to the home page</Link>
       </div>
     </main>
   );

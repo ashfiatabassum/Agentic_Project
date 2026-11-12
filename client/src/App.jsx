@@ -1,9 +1,11 @@
 // Routes (E1). Private routes sit under RequireAuth; /login and /signup under GuestOnly.
-import { Navigate, Route, Routes } from 'react-router';
+// "/" is the public landing page (E19), replacing the earlier redirect to /dashboard (E18).
+import { Route, Routes } from 'react-router';
 import { GuestOnly, RequireAuth } from './auth/guards.jsx';
 import AppLayout from './components/AppLayout.jsx';
 import { LoginPage, SignupPage } from './pages/AuthPages.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 import SpaceCreatedPage from './pages/SpaceCreatedPage.jsx';
 import { EditSpacePage, NewSpacePage } from './pages/SpaceFormPage.jsx';
 import { NotFoundPage, PublicSpaceComingSoon } from './pages/SimplePages.jsx';
@@ -26,7 +28,7 @@ export default function App() {
       </Route>
 
       <Route path="/s/:slug" element={<PublicSpaceComingSoon />} />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
