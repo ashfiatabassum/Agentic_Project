@@ -137,6 +137,7 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 | E12 | Client building blocks | `AuthContext` (calls `/api/auth/me` once), one `api()` fetch helper (JSON, error shape, 401 → login redirect), plain React state for forms; no data-fetching library. Tailwind, labelled inputs, keyboard-usable controls. |
 | E13 | "Space created" page | Shows the public link `http://localhost:5173/s/<slug>` with Copy, plus "Edit space" and "Go to dashboard". (The link opens a page that arrives in M3; until then it shows "Coming soon".) |
 
+### Decisions made during implementation (E14–E18) — confirmed by the developer, 12 November 2026
 
 
 Small choices the PRD and E0–E13 did not settle; raised by the `requirements-reviewer` run as "behaviour not in the PRD".
