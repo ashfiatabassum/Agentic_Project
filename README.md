@@ -53,15 +53,19 @@ The public collection link must point to a reachable host when demonstrating fro
 
 | Feature | Status |
 | --- | --- |
-| Owner authentication | Planned |
-| Space creation and configuration | Planned |
+| Owner authentication | Implemented and verified (M2; branch `feature/m2-auth-spaces`, not yet merged) |
+| Space creation and configuration | Implemented and verified (M2): name, subtitle, prompt, thank-you message, slug, questions, customer fields, theme, brand colour, logo; the public page that shows them comes in M3 |
 | Anonymous text submission and thank-you page | Planned |
 | Inbox moderation and Wall of Love | Planned |
 | Responsive iframe embed | Planned |
 | Dashboard statistics | Planned |
-| Free/Paid quota enforcement | Planned |
+| Free/Paid quota enforcement | Space limit implemented and verified (M2, concurrency-safe); testimonial limits planned (M3) |
 | Demo upgrade and saved plan state | Planned |
 | Real Stripe checkout and webhooks | Not in this demo scope |
+
+**Not done for login (out of scope, PRD §10 Q10):** email verification, password reset, change password or email, delete account, "remember me", social login, multi-owner teams, and an admin role.
+
+**Known limitation:** login and sign-up rate limits are kept in server memory per IP. Behind a reverse proxy, set `TRUST_PROXY` (see `server/.env.example`), or every visitor shares one limit.
 
 The Paid upgrade is a **simulation**. It must never collect card information or be described as a real transaction. Price currency and billing cadence are unresolved in the current brief.
 

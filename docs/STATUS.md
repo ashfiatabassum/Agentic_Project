@@ -1,7 +1,7 @@
 # Project status and next handoff
 
-**Updated:** 11 November 2026
-**Phase:** M0 and M1 complete. **M2 (auth and spaces) planned and approved** (E0–E13, 12 Nov 2026); to be built on branch `feature/m2-auth-spaces` in a fresh session and merged by pull request.
+**Updated:** 12 November 2026
+**Phase:** M0 and M1 complete. **M2 (auth and spaces) implemented and verified on branch `feature/m2-auth-spaces` — not yet committed.** The developer is checking everything by hand; commits, push, and the pull request happen only after the developer confirms.
 
 ## Decisions made
 
@@ -17,13 +17,15 @@
 - **M0 setup** — starter pushed (`6a07d99`); server scaffold (`ead4f0a`); client scaffold (`081f12f`); verified commands (`d6e2ca4`); Playwright MCP and hook loaded in a fresh session (`884217d`, `38f335d`).
 - **M1 data model and migrations** — 9 migrations + runner with checksums and a named lock; `migrate`, `db:reset` (guarded), `seed`; test database `testimonial_mvp_test`; **19/19 tests pass** (schema, password, concurrency incl. 1,000 hard cap, health). Dev DB `testimonial_mvp` migrated and seeded (demo owner `demo@example.com` / `demo-password`).
 
+- **M2 auth and spaces (uncommitted)** — sign up / log in / log out with server-side sessions and rate limits; spaces with questions, customer fields, theme, colour, logo, slug, delete; dashboard; space limit enforced under concurrency. **42/42 tests**, build OK, Playwright journey passed (two owners, 375 px, error states). Hook observed firing. Reviews: 4 skills + 3 subagents, findings fixed or recorded (`docs/verification.md`).
+
 ## Next actions
 
 Milestones and their tasks live in [`plan.md`](../plan.md).
 
-1. Build **M2 — Auth and spaces** per `plan.md` on branch `feature/m2-auth-spaces` (fresh Claude Code session), then merge by pull request. M3 = public form + inbox.
-2. Carry forward from M1: owner-scoped queries, explicit public columns (R7), and moving the quota/hard-cap locking from tests into real service functions.
-3. Hook evidence: still required; run a later milestone in a fresh Claude Code session so the hook fires on real edits.
+1. **Developer:** check M2 by hand (`npm run dev`, then sign up at http://localhost:5173/signup) and confirm plan decisions **E14–E18**.
+2. After confirmation: commit in small steps, push the branch, open the PR to `main`, merge, record PR link and merge commit in `verification.md`, delete the branch.
+3. Plan **M3 — public form + inbox** (accept but lock, hard cap, photo upload; move the submit locking pattern from `concurrency.test.js` into a service). Re-check the `answeredQuestions` EXPLAIN with real answers.
 4. Still open: compare the Project Requirements lesson with the PRD if it becomes available.
 
 ## Progress table
@@ -31,18 +33,19 @@ Milestones and their tasks live in [`plan.md`](../plan.md).
 | Feature | Planned | Implemented | Verified | Notes |
 | --- | :---: | :---: | :---: | --- |
 | Data model and migrations | Yes | Yes | Yes | M1; 19/19 tests |
-| Authentication | Yes (PRD §10) | No | No | M2 |
-| Spaces, fields, themes, logo | Yes (PRD §11) | No | No | Tables ready |
+| Authentication | Yes (PRD §10) | Yes (uncommitted) | Yes | M2; 13 API tests + browser |
+| Spaces, fields, themes, logo | Yes (PRD §11) | Yes (uncommitted) | Yes (settings) | M2; public display in M3 |
 | Public form and consent | Yes | No | No | Tables ready |
 | Inbox and moderation | Yes | No | No | Tables ready |
 | Wall and embed | Yes | No | No | |
-| Dashboard and quotas | Yes | No | No | Locking pattern tested in M1 |
+| Dashboard and quotas | Yes | Partly | Space limit only | M2: space limit + "n of 3" usage; stats M6, testimonial limits M3 |
 | Demo billing | Yes | No | No | |
 
 ## Blockers / open questions
 
 - Project Requirements lesson not yet compared with the PRD (PRD is the agreed baseline).
-- Hook evidence not yet observed during real feature work.
+- M2 waits for the developer's manual check before any commit.
+- Rate limits share one bucket behind a proxy unless `TRUST_PROXY` is set (known limitation, README).
 
 ## Handoff rule
 

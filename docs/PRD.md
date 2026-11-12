@@ -120,7 +120,7 @@ The PRD above is the baseline (Q1). Decisions below refine it and take precedenc
 - Login failure always shows "Invalid email or password"; when the email is unknown, a dummy hash check still runs so timing does not reveal registered emails.
 - Registering an existing email returns 409 "An account with this email already exists."
 - In-memory rate limits: 10 failed logins per IP per 15 minutes; 5 registrations per IP per hour; over the limit returns 429.
-- CSRF: `SameSite=Lax` cookies plus JSON-only state-changing requests (other content types return 415). The public photo upload is handled separately with its feature.
+- CSRF: `SameSite=Lax` cookies plus JSON-only state-changing requests (other content types return 415). The public photo upload is handled separately with its feature. *Exceptions decided in M2 (plan.md E17):* logout accepts any content type, because it must always succeed and a cross-site logout carries no cookie; the owner's logo upload is multipart and also requires the header `X-Requested-With: fetch`.
 
 **Access control (Q12)**
 

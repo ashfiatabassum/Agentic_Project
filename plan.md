@@ -116,7 +116,7 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 **Goal:** an owner can sign up, log in, see their dashboard, and create / edit / delete spaces with questions, customer-field settings, theme, brand colour, logo, and a public link — all owner-isolated and limit-enforced on the server. (The customer side comes in M3.)
 **Requirements covered:** FR-01 (fully, PRD §10), FR-02, FR-03 (settings only), FR-04, FR-12 (space limit).
 **Branch:** `feature/m2-auth-spaces`, merged into `main` through a pull request when "Done when" passes (see `CLAUDE.md` → Git workflow). Built in a **fresh Claude Code session** so the formatting hook runs.
-**Status:** plan approved 12 November 2026 (E0–E13 accepted as proposed); implementation not started.
+**Status:** plan approved 12 November 2026 (E0–E13). **Implemented and verified on the branch (12 November 2026), not yet committed:** the developer checks everything by hand first; commit, push, and PR only after the developer confirms.
 
 ### Decisions (E0–E13) — approved
 
@@ -137,27 +137,42 @@ Recorded in [verification.md → Issues and corrections log](docs/verification.m
 | E12 | Client building blocks | `AuthContext` (calls `/api/auth/me` once), one `api()` fetch helper (JSON, error shape, 401 → login redirect), plain React state for forms; no data-fetching library. Tailwind, labelled inputs, keyboard-usable controls. |
 | E13 | "Space created" page | Shows the public link `http://localhost:5173/s/<slug>` with Copy, plus "Edit space" and "Go to dashboard". (The link opens a page that arrives in M3; until then it shows "Coming soon".) |
 
+### Decisions made during implementation (E14–E18) — for the developer to confirm
+
+Small choices the PRD and E0–E13 did not settle; raised by the `requirements-reviewer` run as "behaviour not in the PRD".
+
+| # | Decision | Chosen |
+| --- | --- | --- |
+| E14 | Versions | `react-router` **7.18.5** (8.x needs React ≥ 19.2.7; the project pins 19.1.10). `multer` 2.5.0. |
+| E15 | Status codes and messages | Space limit → **403** "Your Free plan allows 3 spaces. Delete a space to make room." (upgrade wording comes with billing in M7). Taken slug → **409** with `fields.slug`. Removed/stale question id → 400 "This question no longer exists. Reload the page." |
+| E16 | Rate-limit counting | Sign-up: only well-formed attempts count toward 5/hour (typos do not lock a person out). Login: counted **before** checking the password and given back on success, so only failures count and parallel requests cannot slip past. `Retry-After` header on 429. Optional `TRUST_PROXY` for deployments behind a proxy. |
+| E17 | CSRF exceptions | Logout accepts any content type ("always succeeds", Q13; a cross-site logout carries no cookie). Logo upload is multipart and also requires the header `X-Requested-With: fetch`. |
+| E18 | API details | `PUT /api/spaces/:id` replaces all settings (missing `fields`/`questions` = off/none). Brand colour stored uppercase. `GET /api/themes` is public (lookup data). `Cache-Control: no-store` on the API; uploads served with `nosniff`. Client: `/` → `/dashboard`, a 404 page, and a "could not reach the server" screen when `/me` fails for a reason other than 401. |
+
 ### Tasks
 
-- [ ] Create branch `feature/m2-auth-spaces` from up-to-date `main`
-- [ ] Add pinned dependencies: `react-router` (client), `multer` (server) — versions at least two weeks old
-- [ ] Server: auth module per PRD §10 — register, login, logout, me; scrypt (M1 `password.js`); sessions table; cookie flags; generic login error with dummy-hash timing; rate limits; JSON-only guard; `requireAuth`
-- [ ] Server: spaces service + routes (E3–E9) with owner scoping on every query; space-limit lock moved from the M1 test into the service; questions diff; logo upload/replace/remove with file clean-up
-- [ ] Client: router, `AuthContext`, `api()` helper, layout with header; pages `/signup`, `/login`, `/dashboard`, `/spaces/new`, `/spaces/:id/edit`, `/spaces/:id/created`
-- [ ] Tests (API, `node:test` against `testimonial_mvp_test`): the 9 login tests from PRD §10 Q14; spaces CRUD; **owner B gets 404** on A's space read/update/delete/logo; 4 concurrent creates at the Free limit → 3 (now via the real service); slug rules and availability; questions diff (unanswered deleted, answered deactivated, max 5); logo: wrong type by content, > 2 MB, replace deletes old file; delete space removes logo file
-- [ ] Reviews: `review-react-ui` + `vercel-react-best-practices` on the client; `review-mysql-model` + `mysql` on the new queries; subagents `code-reviewer` + `security-reviewer`
-- [ ] Browser check with **Playwright MCP**: sign up → dashboard → create space (questions, fields, theme, colour, logo) → created page → dashboard shows it → edit → log out → `/dashboard` redirects to login → log in returns to it; second owner cannot open the first owner's edit URL
-- [ ] Docs: verification.md (FR-01–04, FR-12 rows, skill/subagent/hook logs), README status, STATUS, this plan
+Ticked items are verified on the working tree; commit hashes are added when the developer approves the commits.
+
+- [x] Create branch `feature/m2-auth-spaces` from up-to-date `main` (`main` = `origin/main` at `b4cf4f0`)
+- [x] Add pinned dependencies: `react-router` 7.18.5 (client), `multer` 2.5.0 (server) — see E14
+- [x] Server: auth module per PRD §10 — register, login, logout, me; scrypt (M1 `password.js`); sessions table; cookie flags; generic login error with dummy-hash timing; rate limits; JSON-only guard; `requireAuth`
+- [x] Server: spaces service + routes (E3–E9) with owner scoping on every query; space-limit lock moved from the M1 test into the service; questions diff; logo upload/replace/remove with file clean-up
+- [x] Client: router, `AuthContext`, `api()` helper, layout with header; pages `/signup`, `/login`, `/dashboard`, `/spaces/new`, `/spaces/:id/edit`, `/spaces/:id/created`
+- [x] Tests (API, `node:test` against `testimonial_mvp_test`): the 9 login tests from PRD §10 Q14; spaces CRUD; **owner B gets 404** on A's space read/update/delete/logo; 4 concurrent creates at the Free limit → 3 (now via the real service); slug rules and availability; questions diff (unanswered deleted, answered deactivated, max 5); logo: wrong type by content, > 2 MB, replace deletes old file; delete space removes logo file — plus parallel-login limit, logout with any content type, WebP, update-slug 409 (added after reviews)
+- [x] Reviews: `review-react-ui` + `vercel-react-best-practices` on the client; `review-mysql-model` + `mysql` on the new queries; subagents `code-reviewer` + `security-reviewer` + `requirements-reviewer` (findings and fixes in verification.md)
+- [x] Browser check with **Playwright MCP**: sign up → dashboard → create space (questions, fields, theme, colour) → created page → edit (logo upload, per E7 only possible once the space exists) → dashboard shows it → log out → private URL redirects to login → log in returns to it; second owner cannot open the first owner's edit URL
+- [x] Docs: verification.md (FR-01–04, FR-12 rows, skill/subagent/hook logs), README status, STATUS, this plan
+- [ ] **Developer manual check**, then commits (one per task where practical)
 - [ ] Open a pull request `feature/m2-auth-spaces` → `main` (summary, checks run, known gaps); merge after "Done when" passes; record PR link and merge commit; delete the branch
 
 ### Done when
 
-- [ ] All server tests pass (M1's 19 plus the new auth and spaces tests)
-- [ ] Playwright journey above passes, with screenshots of dashboard, space form, and created page
-- [ ] Another owner gets 404 for every space endpoint of someone else (tested)
-- [ ] The 4th space on Free is refused even under concurrent requests (tested through the real service)
-- [ ] Hook observed firing on a real edit; skill and subagent findings fixed or recorded
-- [ ] `npm run build` succeeds; no secrets or uploaded files committed (`server/uploads/` is gitignored)
+- [x] All server tests pass: **42/42** (M1's 19 plus 23 new auth and spaces tests)
+- [x] Playwright journey above passes, with screenshots of dashboard, space form, and created page (`docs/screenshots/m2-*.png`)
+- [x] Another owner gets 404 for every space endpoint of someone else (tested: `spaces.test.js`; also in the browser)
+- [x] The 4th space on Free is refused even under concurrent requests (tested through the real service and the API)
+- [x] Hook observed firing on a real edit; skill and subagent findings fixed or recorded
+- [ ] `npm run build` succeeds ✔; no secrets or uploaded files committed — `server/uploads/`, `server/.env*`, and `.playwright-mcp/` are ignored on the working tree; re-check `git status` at commit time
 
 ### Risks
 
