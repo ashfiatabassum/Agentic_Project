@@ -11,6 +11,7 @@ import PublicSpacePage from './pages/PublicSpacePage.jsx';
 import SpaceCreatedPage from './pages/SpaceCreatedPage.jsx';
 import { EditSpacePage, NewSpacePage } from './pages/SpaceFormPage.jsx';
 import { NotFoundPage } from './pages/SimplePages.jsx';
+import WallPage from './pages/WallPage.jsx';
 
 export default function App() {
   return (
@@ -32,6 +33,8 @@ export default function App() {
 
       {/* Public collection page: no login (M3, E26). */}
       <Route path="/s/:slug" element={<PublicSpacePage />} />
+      {/* Public Wall of Love: no login (M4, E49). */}
+      <Route path="/s/:slug/wall" element={<WallPage />} />
       <Route path="/" element={<LandingPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
