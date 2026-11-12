@@ -41,3 +41,16 @@ html {
     scroll-behavior: auto;
   }
 }
+
+/* Embed entrance animation (plan.md E67): only when the visitor has not asked for reduced
+   motion; with reduced motion the cards simply appear. */
+@keyframes embed-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .embed-rise {
+    animation: embed-rise 0.4s ease-out both;
+  }
+}

@@ -60,6 +60,9 @@ export default function SpaceCreatedPage() {
           <Link to={`/spaces/${space.id}/inbox`} className="rounded-lg px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
             Open inbox
           </Link>
+          <Link to={`/spaces/${space.id}/embed`} className="rounded-lg px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
+            Embed on your site
+          </Link>
           <Link to="/dashboard" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
             Go to dashboard
           </Link>

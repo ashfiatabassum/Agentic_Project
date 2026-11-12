@@ -322,6 +322,9 @@ function Inbox({ id }) {
           <a href={`/s/${space.slug}/wall`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
             View Wall of Love ↗
           </a>
+          <Link to={`/spaces/${id}/embed`} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50">
+            Embed on your site
+          </Link>
           <CopyButton text={publicSpaceUrl(space.slug)} />
         </div>
       </div>
