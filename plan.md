@@ -259,6 +259,71 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 
 ---
 
+## M4 — Moderation and Wall of Love
+
+**Goal:** the owner can edit, hide, favourite, add to or remove from the wall, and delete any **visible** testimonial in their own space's inbox. A public Wall of Love page `/s/:slug/wall` shows only testimonials that are on the wall, not hidden, not locked, and have public consent. It shows no email, consent flags, answers, or other private data.
+**Requirements covered:** FR-08, FR-09; PRD §5 rules (owner-only access, wall eligibility, accept but lock, `edited_at` marker, deleting frees capacity, no private data in public APIs); PRD §11.4 items 5–9 and §11.5.
+**Branch:** `feature/m4-moderation-wall` from `main`, merged by pull request (CLAUDE.md → Git workflow). **Status:** E39–E53 approved by the developer, 12 November 2026; implementation in progress on the branch.
+**Schema:** no migration. `testimonials` already has `is_hidden`, `is_favorite`, `on_wall`, `original_body`, `edited_at`, and the CHECK `chk_testimonials_wall_eligible` (R4).
+
+### Decisions (E39–E52) — approved by the developer, 12 November 2026
+
+| # | Decision | Proposed |
+| --- | --- | --- |
+| E39 | Who can act | **Only the space's owner.** All moderation routes sit under `/api/spaces/:spaceId/testimonials/:tid`, need a session, and use the JSON-only CSRF guard. Every query is scoped with `spaces.owner_id = <session user>` (a join through `spaces`). Another owner's space or testimonial, or a testimonial from a different space → **404**, the same response as an unknown id, so ids cannot be probed. |
+| E40 | Locked testimonials | Every action (edit, hide, favourite, wall, delete) on a **locked** testimonial → `403 { locked: true }`, and nothing changes. Locked status is worked out inside the action's transaction with the same `ROW_NUMBER()` rule as the inbox (E28–E29). Owners never see locked rows, so the UI has nothing to click. Locked rows become visible again when capacity is freed (E46) or after an upgrade (M7). |
+| E41 | Flags API | `PATCH /api/spaces/:spaceId/testimonials/:tid` with any of `{ favorite, hidden, onWall }` (booleans only; anything else → 400). Returns the updated detail (same shape as E29). One transaction: lock the testimonial row (`SELECT … FOR UPDATE`, owner-scoped), check it is visible, then update. |
+| E42 | Wall rule (consent) | `onWall: true` is accepted only if `consent_public = 1` **and** it is not hidden **and** not locked. Otherwise → `409` with a reason: "The customer did not agree to public display" or "Unhide it first". Social-sharing consent alone is **not** enough. The DB CHECK (R4) is the backstop. **The owner can never change either consent flag.** |
+| E43 | Hide and the wall | Hiding sets `is_hidden = 1, on_wall = 0` in the same `UPDATE` (the CHECK requires it). Unhiding does **not** put it back on the wall (data-model R4). Hidden testimonials stay in the inbox (Hidden filter) and still count toward the plan limit (PRD §5). Favourite never affects public visibility. |
+| E44 | Edit content | `PUT /api/spaces/:spaceId/testimonials/:tid/content` with `{ name, jobTitle, company, socialLink, rating, body, removePhoto }`. Same limits as E23: name 1–100, body 1–2,000, job title/company ≤ 100, social link `http`/`https` ≤ 300, rating `null` or 1–5. These are editable whatever the space's field modes. **Not editable:** email, both consents, answers, received date. The photo can only be **removed** (not replaced). The file is deleted after commit. |
+| E45 | Edited marker | If anything actually changes, set `edited_at = NOW()`. The **first** time the body changes, save the customer's text in `original_body` (D5); later edits keep it. If nothing changed → 200, and `edited_at` is not touched. The inbox detail shows "Edited {date}" and a "Show original text" toggle. The wall shows a small "Edited" note (data-model). |
+| E46 | Delete | `DELETE /api/spaces/:spaceId/testimonials/:tid` → 204. The answers are removed by cascade and the photo file is deleted after commit. The UI first shows a confirmation dialog ("Delete this testimonial? This cannot be undone." with Cancel/Delete; focus is trapped; Escape cancels), in the style of `DeleteSpaceDialog`. Deleting frees capacity, so the oldest locked testimonial becomes visible (tested). |
+| E47 | Inbox UI | The detail panel has action buttons: ☆ Favourite, Hide/Unhide, Add to wall/Remove from wall, Edit, and Delete. "Add to wall" is **disabled, with the reason shown** when there is no public consent or the testimonial is hidden. Edit opens an inline form in the panel with Save/Cancel and field errors from the server. List rows show badges (Favourite, On wall, Hidden, Edited). After each action the list and counts reload (no optimistic update). Errors (409/403/404) are shown in the panel. |
+| E48 | Public wall API | `GET /api/public/spaces/:slug/wall` (no login; invalid slug → 404 before any query, as in E34). It returns `{ space: { name, slug, subtitle, theme, brandColor, logoUrl }, testimonials: [...] }`. Each testimonial is exactly `{ name, jobTitle, company, photoUrl, rating, body, edited, createdAt }`, with columns listed explicitly, never `SELECT *`. **Never** email, social link, consent flags, `original_body`, answers, ids, counts, owner, or plan. Filter: `on_wall = 1 AND is_hidden = 0 AND consent_public = 1` and rank ≤ the owner's limit (not locked). Order: newest first. |
+| E49 | Public wall page | Route `/s/:slug/wall`. It uses the space's theme, brand colour, and logo, with the header "{space name} — Wall of Love". Testimonials appear as a responsive card grid (1 column at 375 px, up to 3 on desktop). Each card has a photo or initials, name, job title · company, stars (with an accessible label "Rated 4 out of 5"), the text (plain text, never HTML), and "Edited" if edited. An empty wall shows "No testimonials here yet." A link "Share your own experience" goes to `/s/:slug`, and an unknown slug → "This page doesn't exist". The card component is kept separate so M5's embed can reuse it. |
+| E50 | Links to the wall | The inbox header and the "space created" page get a "View Wall of Love" link (it opens `/s/:slug/wall`). |
+| E51 | Wall rate limit / caching | No rate limit on the read (same as the public space read). `Cache-Control: no-store`, so removing an item from the wall takes effect at once. |
+| E52 | Demo data | `npm run seed` is unchanged: the bakery space already has testimonials on the wall. Tests and Playwright create other cases (no consent, hidden, locked) directly in the test database. |
+
+### Tasks
+
+- [x] Developer approved E39–E53 (12 November 2026); create branch `feature/m4-moderation-wall` from up-to-date `main`
+- [ ] Server: flags PATCH (E41–E43), content PUT (E44–E45), and DELETE (E46) in `services/testimonials.js` + `routes/testimonials.js`, owner-scoped, with lock check and row lock; photo file removed after commit
+- [ ] Server: public wall read (E48, E51) in `routes/public.js` + service
+- [ ] Client: inbox detail actions, inline edit form, delete dialog, badges, "Show original text", wall link (E47, E50)
+- [ ] Client: public wall page `/s/:slug/wall` with themed card grid (E49)
+- [ ] Tests (new, about 20). Owner isolation: another owner gets 404 for PATCH/PUT/DELETE, and so does a testimonial id from another space. A locked testimonial gets 403 for every action, with no change in the DB. Wall: no public consent → 409, hidden → 409, social consent only → 409. Hiding clears `on_wall`; unhiding does not restore it. Edit: validation errors; email/consent cannot be changed (extra keys ignored or 400); `original_body` is set only on the first body edit; `edited_at` is set; a no-op edit leaves `edited_at` unchanged; removing the photo deletes the file. Delete: answers cascade, the photo file is deleted, and 101 rows → deleting one visible → the former #101 becomes visible. Public wall: only eligible rows; the response keys are exactly the E48 list (no `email`, `consent*`, `original_body`, `socialLink`, `id`); locked on-wall rows are excluded; an invalid or unknown slug → 404; an empty wall → `[]`. CSRF: a non-JSON PATCH → 415.
+- [ ] Reviews, **each run once at the end**, not after every fix: `review-react-ui` + `vercel-react-best-practices`, and `review-mysql-model` + `mysql` (EXPLAIN on the wall query). Subagents: `code-reviewer`, `security-reviewer` (public page + owner actions), `requirements-reviewer` (FR-08, FR-09). **Only one subagent may run `npm test`** (code-reviewer); the others read only. Record all findings in `docs/verification.md`.
+- [ ] Playwright MCP, using **snapshots** (accessibility tree) for the checks and **screenshots only for the final evidence** (`docs/screenshots/m4-*`):
+  - owner favourites a testimonial → it moves to the top; hides one → it appears under the Hidden filter and leaves the wall; "Add to wall" is disabled with the reason shown for a testimonial without public consent
+  - owner adds an eligible testimonial to the wall → it appears on `/s/:slug/wall` (logged out, in a fresh context); removing it makes it disappear
+  - edit text → "Edited" shows in the inbox and on the wall, and the original text can be viewed in the inbox
+  - delete with confirmation (Cancel keeps it, Delete removes it); with 101 rows, after a delete the locked banner count drops
+  - wall at 375 px and on desktop; dark theme readable; the page source/network response contains no email
+  - a second owner gets 404 on the first owner's moderation API
+- [ ] Docs: verification.md (FR-08, FR-09 rows; skill, subagent, and issue logs), STATUS, README status, and this plan
+- [ ] **Developer manual check** of the M4 branch
+- [ ] Push, PR to `main`, merge, record the PR and merge commit
+
+### Done when
+
+- [ ] All server tests pass (M1–M3 + new M4 tests)
+- [ ] Owner isolation, locked 403, and wall-consent rules are covered by tests
+- [ ] The public wall response has exactly the allowed keys (tested) and contains no email, consent flags, original text, answers, or locked testimonials
+- [ ] Playwright journey above passes; final screenshots saved in `docs/screenshots/m4-*`
+- [ ] Skill and subagent findings fixed or recorded
+- [ ] `npm run build` succeeds; no uploaded photos or secrets committed
+
+### Risks
+
+- **Leaking private data on a public page.** Mitigations: an explicit column list, a test of the exact response keys, and a security review.
+- **IDOR (guessing another owner's testimonial ids).** Mitigation: every write joins through `spaces.owner_id` and checks `space_id`, and the tests cover another owner and another space.
+- **Edit/delete races (two tabs).** Mitigation: a row lock in the transaction. The photo file is deleted only after commit, so a rollback never loses a file the database still points to.
+- **Misrepresenting edited content.** Mitigations: the "Edited" marker on the wall, and the original text is kept and viewable by the owner.
+- **The confirmation dialog and the inline edit form need focus management.** Check them with the keyboard during the Playwright run.
+
+---
+
 ## Roadmap after M2 (E0 approved)
 
 | Milestone | Scope |
@@ -269,3 +334,16 @@ Ticked items are verified on the working tree; commit hashes are added when the 
 | M6 | Dashboard statistics + plan limits UI (FR-11, FR-12) |
 | M7 | Billing demo (FR-13) |
 | M8 | Final check, README, recording, reflection, submission |
+
+### Parallel work (E53) — approved by the developer, 12 November 2026
+
+The assignment requires at least one independent task to be built in a **separate Claude Code session on its own branch**, then merged and checked in the combined app. A subagent does not count.
+
+| Item | Decision |
+| --- | --- |
+| What runs in parallel | **M5 (embed) and M6 (dashboard statistics) run at the same time, after M4 is merged.** M5 needs M4's public wall API (E48) and the wall card (E49), so it cannot run alongside M4. M5 and M6 touch different files. |
+| Sessions | Session A works on M6 in this folder (`feature/m6-dashboard-stats`). Session B works on M5 in a git worktree: `git worktree add ../Agentic_Project-m5 -b feature/m5-embed main`, opened in a second VS Code window with its own Claude Code session. |
+| Ports | Session B runs the API and client on other ports (for example 4001/5174) through its own `.env`. Before starting, check that the ports can be set without changing code; if they cannot, make that a small change first. |
+| Test database | `npm test` wipes the test DB, so both sessions must not run it at the same time against one database. Either session B gets its own test DB (`testimonial_mvp_test_m5`, which means widening the guard's allow-list), or only one session runs tests at a time. Choose when M5/M6 are planned. |
+| Merging | Each branch has its own PR. The branch that merges second first merges `main` into itself, resolves any conflicts, reruns the tests and build, and then merges. Afterwards a Playwright check on `main` covers the embed and the dashboard together. |
+| Evidence (`docs/verification.md`) | Both branch names, which session built each one, commit times that overlap, both PR links and merge commits, any conflicts and how they were resolved, and the test and browser results on `main` after both merges. |
