@@ -32,6 +32,29 @@ export async function checkDatabase() {
   }
 }
 
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Runs fn(conn) in one transaction on a pooled connection. A deadlock (MySQL 1213) is
+// retried once after a short random backoff (data-model.md D10/R6; mysql skill deadlocks.md);
+// any other error rolls back and is re-thrown. fn must only touch the database, so a retry is safe.
+export async function withTransaction(fn) {
+  for (let attempt = 0; ; attempt += 1) {
+    if (attempt > 0) await pause(20 + Math.random() * 50);
+    const conn = await getPool().getConnection();
+    try {
+      await conn.beginTransaction();
+      const result = await fn(conn);
+      await conn.commit();
+      return result;
+    } catch (error) {
+      await conn.rollback().catch(() => {});
+      if (error.code !== 'ER_LOCK_DEADLOCK' || attempt > 0) throw error;
+    } finally {
+      conn.release();
+    }
+  }
+}
+
 export async function closePool() {
   if (pool) {
     await pool.end();

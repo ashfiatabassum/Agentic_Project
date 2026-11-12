@@ -9,3 +9,4 @@ server/uploads/
 *.sqlite
 coverage/
 .claude/settings.local.json
+.playwright-mcp/

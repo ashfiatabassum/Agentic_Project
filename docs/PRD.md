@@ -61,7 +61,8 @@ There is no separate platform administrator in this scope. “Admin” in the br
 
 | Route concept | Audience | Main content |
 | --- | --- | --- |
-| Sign up / sign in | Owner | Credentials and errors |
+| Landing page `/` | Public | What the product does, interactive feature preview, sample testimonials, Free vs Paid (demo) pricing, sign-up call to action (added 12 Nov 2026, plan.md E19) |
+| Sign up / sign in | Owner | Credentials and errors; two-column desktop layout with larger fields (plan.md E20) |
 | Dashboard | Owner | Statistics, graph, spaces, plan prompt |
 | New/edit space | Owner | Title, subtitle, prompt, questions, fields, theme |
 | Space created | Owner | Public link and next steps |
@@ -120,7 +121,7 @@ The PRD above is the baseline (Q1). Decisions below refine it and take precedenc
 - Login failure always shows "Invalid email or password"; when the email is unknown, a dummy hash check still runs so timing does not reveal registered emails.
 - Registering an existing email returns 409 "An account with this email already exists."
 - In-memory rate limits: 10 failed logins per IP per 15 minutes; 5 registrations per IP per hour; over the limit returns 429.
-- CSRF: `SameSite=Lax` cookies plus JSON-only state-changing requests (other content types return 415). The public photo upload is handled separately with its feature.
+- CSRF: `SameSite=Lax` cookies plus JSON-only state-changing requests (other content types return 415). The public photo upload is handled separately with its feature. *Exceptions decided in M2 (plan.md E17):* logout accepts any content type, because it must always succeed and a cross-site logout carries no cookie; the owner's logo upload is multipart and also requires the header `X-Requested-With: fetch`.
 
 **Access control (Q12)**
 
@@ -158,6 +159,7 @@ Agreed after listing all functions and comparing with Testimonial.to (home, pric
 5. Get the current user on page load
 6. Protect private pages and APIs (redirect to login, then back)
 7. Rate-limit login and sign-up attempts
+8. **(added 12 Nov 2026)** Public landing page at `/` with an interactive feature preview and pricing, leading to sign up; larger two-column sign in / sign up pages (plan.md E19–E20)
 
 ### 2. Spaces (FR-02 – FR-04)
 

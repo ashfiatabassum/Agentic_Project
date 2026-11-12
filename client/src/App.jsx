@@ -1,62 +1,35 @@
-import { useEffect, useState } from 'react';
-
-// Scaffold page: confirms the client can reach the API (through the Vite proxy) and
-// that the API can reach MySQL. Replaced by real routes in the first feature slice.
-function useApiHealth() {
-  const [state, setState] = useState({ loading: true, data: null, error: null });
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch('/api/health', { signal: controller.signal })
-      .then(async (res) => {
-        const data = await res.json().catch(() => null);
-        if (!data) throw new Error(`Unexpected response (HTTP ${res.status})`);
-        setState({ loading: false, data, error: null });
-      })
-      .catch((error) => {
-        if (error.name !== 'AbortError') {
-          setState({ loading: false, data: null, error: 'Cannot reach the API. Is the server running on port 4000?' });
-        }
-      });
-    return () => controller.abort();
-  }, []);
-
-  return state;
-}
-
-function StatusRow({ label, value }) {
-  const ok = value === 'ok';
-  return (
-    <div className="flex items-center justify-between py-2">
-      <dt className="text-slate-600">{label}</dt>
-      <dd className={`rounded-full px-3 py-1 text-sm font-medium ${ok ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-        {value}
-      </dd>
-    </div>
-  );
-}
+// Routes (E1). Private routes sit under RequireAuth; /login and /signup under GuestOnly.
+// "/" is the public landing page (E19), replacing the earlier redirect to /dashboard (E18).
+import { Route, Routes } from 'react-router';
+import { GuestOnly, RequireAuth } from './auth/guards.jsx';
+import AppLayout from './components/AppLayout.jsx';
+import { LoginPage, SignupPage } from './pages/AuthPages.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
+import LandingPage from './pages/LandingPage.jsx';
+import SpaceCreatedPage from './pages/SpaceCreatedPage.jsx';
+import { EditSpacePage, NewSpacePage } from './pages/SpaceFormPage.jsx';
+import { NotFoundPage, PublicSpaceComingSoon } from './pages/SimplePages.jsx';
 
 export default function App() {
-  const { loading, data, error } = useApiHealth();
-
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-16">
-      <div className="mx-auto max-w-md rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
-        <h1 className="text-2xl font-semibold text-slate-900">Testimonial MVP</h1>
-        <p className="mt-2 text-slate-600">Development scaffold: client, API, and database status.</p>
+    <Routes>
+      <Route element={<GuestOnly />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+      </Route>
 
-        <section className="mt-6" aria-live="polite">
-          {loading && <p className="text-slate-500">Checking API…</p>}
-          {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-800">{error}</p>}
-          {data && (
-            <dl className="divide-y divide-slate-100">
-              <StatusRow label="Client" value="ok" />
-              <StatusRow label="API" value={data.api} />
-              <StatusRow label="Database" value={data.database} />
-            </dl>
-          )}
-        </section>
-      </div>
-    </main>
+      <Route element={<RequireAuth />}>
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/spaces/new" element={<NewSpacePage />} />
+          <Route path="/spaces/:id/edit" element={<EditSpacePage />} />
+          <Route path="/spaces/:id/created" element={<SpaceCreatedPage />} />
+        </Route>
+      </Route>
+
+      <Route path="/s/:slug" element={<PublicSpaceComingSoon />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
